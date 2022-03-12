@@ -9,430 +9,430 @@ namespace Binstate.Tests;
 
 public class TransitionTest : StateMachineTestBase
 {
-  [TestCaseSource(nameof(RaiseWays))]
-  public void should_call_action_on_transition_between_exit_and_enter(RaiseWay raiseWay)
-  {
-    var onExitInitial = A.Fake<Action>();
-    var onTransit     = A.Fake<Action>();
-    var onEnterState1 = A.Fake<Action>();
-
-    // --arrange
-    var builder = new Builder<string, int>(OnException);
-
-    builder.DefineState(Initial)
-           .OnExit(onExitInitial)
-           .AddTransition(GoToStateX, StateX, onTransit);
-
-    builder.DefineState(StateX)
-           .OnEnter(onEnterState1);
-
-    var target = builder.Build(Initial);
-
-    // --act
-    target.Raise(raiseWay, GoToStateX);
-
-    // --assert
-    A.CallTo(() => onExitInitial()).MustHaveHappenedOnceExactly()
-     .Then(A.CallTo(() => onTransit()).MustHaveHappenedOnceExactly())
-     .Then(A.CallTo(() => onEnterState1()).MustHaveHappenedOnceExactly());
-  }
-
-  [TestCaseSource(nameof(RaiseWays))]
-  public void should_call_action_w_argument_on_transition_between_exit_and_enter(RaiseWay raiseWay)
-  {
-    var expected = new MemoryStream();
-
-    var onExitInitial = A.Fake<Action>();
-    var onTransit     = A.Fake<Action<IDisposable>>();
-    var onEnterState1 = A.Fake<Action>();
-
-    // --arrange
-    var builder = new Builder<string, int>(OnException);
-
-    builder.DefineState(Initial)
-           .OnEnter<IDisposable>(_ => { })
-           .OnExit(onExitInitial)
-           .AddTransition(GoToStateX, StateX, onTransit);
-
-    builder.DefineState(StateX)
-           .OnEnter(onEnterState1);
-
-    var target = builder.Build(Initial, expected);
-
-    // --act
-    target.Raise(raiseWay, GoToStateX);
-
-    // --assert
-    A.CallTo(() => onExitInitial())
-     .MustHaveHappenedOnceExactly()
-     .Then(A.CallTo(() => onTransit(expected)).MustHaveHappenedOnceExactly())
-     .Then(A.CallTo(() => onEnterState1()).MustHaveHappenedOnceExactly());
-  }
-
-  [TestCaseSource(nameof(RaiseWays))]
-  public void raise_should_return_false_if_no_transition_found(RaiseWay raiseWay)
-  {
-    // --arrange
-    var builder = new Builder<string, string>(OnException);
-    builder.DefineState(Initial).AddTransition(StateX, StateX);
-    builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
-
-    var target = builder.Build(Initial);
-
-    // --act
-    var actual = target.Raise(raiseWay, "WrongEvent");
-
-    // --assert
-    actual.Should().BeFalse();
-  }
-
-  [Test]
-  public void controller_should_return_false_if_no_transition_found()
-  {
-    // --arrange
-    var builder = new Builder<string, string>(OnException);
-
-    builder.DefineState(Initial)
-           .OnEnter(OnEnterInitialState)
-           .AddTransition(StateX, StateX);
-
-    builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
+	[TestCaseSource(nameof(RaiseWays))]
+	public void should_call_action_on_transition_between_exit_and_enter(RaiseWay raiseWay)
+	{
+		var onExitInitial = A.Fake<Action>();
+		var onTransit     = A.Fake<Action>();
+		var onEnterState1 = A.Fake<Action>();
+
+		// --arrange
+		var builder = new Builder<string, int>(OnException);
+
+		builder.DefineState(Initial)
+					 .OnExit(onExitInitial)
+					 .AddTransition(GoToStateX, StateX, onTransit);
+
+		builder.DefineState(StateX)
+					 .OnEnter(onEnterState1);
+
+		var target = builder.Build(Initial);
+
+		// --act
+		target.Raise(raiseWay, GoToStateX);
+
+		// --assert
+		A.CallTo(() => onExitInitial()).MustHaveHappenedOnceExactly()
+		 .Then(A.CallTo(() => onTransit()).MustHaveHappenedOnceExactly())
+		 .Then(A.CallTo(() => onEnterState1()).MustHaveHappenedOnceExactly());
+	}
+
+	[TestCaseSource(nameof(RaiseWays))]
+	public void should_call_action_w_argument_on_transition_between_exit_and_enter(RaiseWay raiseWay)
+	{
+		var expected = new MemoryStream();
+
+		var onExitInitial = A.Fake<Action>();
+		var onTransit     = A.Fake<Action<IDisposable>>();
+		var onEnterState1 = A.Fake<Action>();
+
+		// --arrange
+		var builder = new Builder<string, int>(OnException);
+
+		builder.DefineState(Initial)
+					 .OnEnter<IDisposable>(_ => { })
+					 .OnExit(onExitInitial)
+					 .AddTransition(GoToStateX, StateX, onTransit);
+
+		builder.DefineState(StateX)
+					 .OnEnter(onEnterState1);
+
+		var target = builder.Build(Initial, expected);
+
+		// --act
+		target.Raise(raiseWay, GoToStateX);
+
+		// --assert
+		A.CallTo(() => onExitInitial())
+		 .MustHaveHappenedOnceExactly()
+		 .Then(A.CallTo(() => onTransit(expected)).MustHaveHappenedOnceExactly())
+		 .Then(A.CallTo(() => onEnterState1()).MustHaveHappenedOnceExactly());
+	}
+
+	[TestCaseSource(nameof(RaiseWays))]
+	public void raise_should_return_false_if_no_transition_found(RaiseWay raiseWay)
+	{
+		// --arrange
+		var builder = new Builder<string, string>(OnException);
+		builder.DefineState(Initial).AddTransition(StateX, StateX);
+		builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
+
+		var target = builder.Build(Initial);
+
+		// --act
+		var actual = target.Raise(raiseWay, "WrongEvent");
+
+		// --assert
+		actual.Should().BeFalse();
+	}
+
+	[Test]
+	public void controller_should_return_false_if_no_transition_found()
+	{
+		// --arrange
+		var builder = new Builder<string, string>(OnException);
+
+		builder.DefineState(Initial)
+					 .OnEnter(OnEnterInitialState)
+					 .AddTransition(StateX, StateX);
+
+		builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
 
-    builder.Build(Initial);
-
-    static void OnEnterInitialState(IStateController<string> stateMachine)
-    {
-      // --act
-      var actual = stateMachine.RaiseAsync("WrongEvent");
-
-      // --assert
-      actual.Should().BeFalse();
-    }
-  }
-
-  [TestCaseSource(nameof(RaiseWays))]
-  public void should_transit_using_dynamic_transition(RaiseWay raiseWay)
-  {
-    var actual = new List<string>();
-
-    // --arrange
-    var builder = new Builder<string, int>(OnException);
+		builder.Build(Initial);
+
+		static void OnEnterInitialState(IStateController<string> stateMachine)
+		{
+			// --act
+			var actual = stateMachine.RaiseAsync("WrongEvent");
+
+			// --assert
+			actual.Should().BeFalse();
+		}
+	}
+
+	[TestCaseSource(nameof(RaiseWays))]
+	public void should_transit_using_dynamic_transition(RaiseWay raiseWay)
+	{
+		var actual = new List<string>();
+
+		// --arrange
+		var builder = new Builder<string, int>(OnException);
 
-    var first = true;
+		var first = true;
 
-    builder
-     .DefineState(Initial)
-     .AddTransition(
-        GoToStateX,
-        () =>
-        {
-          var state = first ? StateX : StateY;
-          first = false;
+		builder
+		 .DefineState(Initial)
+		 .AddTransition(
+				GoToStateX,
+				() =>
+				{
+					var state = first ? StateX : StateY;
+					first = false;
 
-          return state;
-        }
-      );
+					return state;
+				}
+			);
 
-    builder
-     .DefineState(StateX)
-     .AsSubstateOf(Initial)
-     .OnEnter(_ => actual.Add(StateX));
+		builder
+		 .DefineState(StateX)
+		 .AsSubstateOf(Initial)
+		 .OnEnter(_ => actual.Add(StateX));
 
-    builder
-     .DefineState(StateY)
-     .OnEnter(_ => actual.Add(StateY));
+		builder
+		 .DefineState(StateY)
+		 .OnEnter(_ => actual.Add(StateY));
 
-    var target = builder.Build(Initial);
+		var target = builder.Build(Initial);
 
-    // --act
-    target.Raise(raiseWay, GoToStateX);
-    target.Raise(raiseWay, GoToStateX);
+		// --act
+		target.Raise(raiseWay, GoToStateX);
+		target.Raise(raiseWay, GoToStateX);
 
-    // --assert
-    actual.Should().BeEquivalentTo(StateX, StateY);
-  }
+		// --assert
+		actual.Should().BeEquivalentTo(StateX, StateY);
+	}
 
-  [TestCaseSource(nameof(RaiseWays))]
-  public void should_transit_using_dynamic_transition_using_value_type_default(RaiseWay raiseWay)
-  {
-    const int initialStateId = 1;
-    const int stateId1       = 0; // default value
-    const int stateId2       = 38;
+	[TestCaseSource(nameof(RaiseWays))]
+	public void should_transit_using_dynamic_transition_using_value_type_default(RaiseWay raiseWay)
+	{
+		const int initialStateId = 1;
+		const int stateId1       = 0; // default value
+		const int stateId2       = 38;
 
-    var first = true;
+		var first = true;
 
-    bool DynamicTransition(out int state)
-    {
-      state = first ? stateId1 : stateId2;
-      first = false;
+		bool DynamicTransition(out int state)
+		{
+			state = first ? stateId1 : stateId2;
+			first = false;
 
-      return true;
-    }
+			return true;
+		}
 
-    var actual = new List<int>();
+		var actual = new List<int>();
 
-    // --arrange
-    var builder = new Builder<int, int>(OnException);
+		// --arrange
+		var builder = new Builder<int, int>(OnException);
 
-    builder
-     .DefineState(initialStateId)
-     .AddTransition(GoToStateX, DynamicTransition);
+		builder
+		 .DefineState(initialStateId)
+		 .AddTransition(GoToStateX, DynamicTransition);
 
-    builder
-     .DefineState(stateId1)
-     .AsSubstateOf(initialStateId)
-     .OnEnter(_ => actual.Add(stateId1));
+		builder
+		 .DefineState(stateId1)
+		 .AsSubstateOf(initialStateId)
+		 .OnEnter(_ => actual.Add(stateId1));
 
-    builder
-     .DefineState(stateId2)
-     .OnEnter(_ => actual.Add(stateId2));
+		builder
+		 .DefineState(stateId2)
+		 .OnEnter(_ => actual.Add(stateId2));
 
-    var target = builder.Build(initialStateId);
+		var target = builder.Build(initialStateId);
 
-    // --act
-    target.Raise(raiseWay, GoToStateX);
-    target.Raise(raiseWay, GoToStateX);
+		// --act
+		target.Raise(raiseWay, GoToStateX);
+		target.Raise(raiseWay, GoToStateX);
 
-    // --assert
-    actual.Should().Equal(stateId1, stateId2);
-  }
+		// --assert
+		actual.Should().Equal(stateId1, stateId2);
+	}
 
-  [TestCaseSource(nameof(RaiseWays))]
-  public void raise_should_return_false_if_dynamic_transition_returns_false_value_type(RaiseWay raiseWay)
-  {
-    const int initialStateId = 1;
-    const int stateId        = 2;
+	[TestCaseSource(nameof(RaiseWays))]
+	public void raise_should_return_false_if_dynamic_transition_returns_false_value_type(RaiseWay raiseWay)
+	{
+		const int initialStateId = 1;
+		const int stateId        = 2;
 
-    static bool DynamicTransition(out int state)
-    {
-      state = stateId;
-      return false;
-    }
+		static bool DynamicTransition(out int state)
+		{
+			state = stateId;
+			return false;
+		}
 
-    // --arrange
-    var builder = new Builder<int, int>(OnException);
+		// --arrange
+		var builder = new Builder<int, int>(OnException);
 
-    builder.DefineState(initialStateId)
-           .AddTransition(GoToStateX, DynamicTransition);
+		builder.DefineState(initialStateId)
+					 .AddTransition(GoToStateX, DynamicTransition);
 
-    builder.DefineState(stateId).OnEnter(() => Assert.Fail("No transition should be performed"));
+		builder.DefineState(stateId).OnEnter(() => Assert.Fail("No transition should be performed"));
 
-    var target = builder.Build(initialStateId);
+		var target = builder.Build(initialStateId);
 
-    // --act
-    var actual = target.Raise(raiseWay, GoToStateX);
+		// --act
+		var actual = target.Raise(raiseWay, GoToStateX);
 
-    // --assert
-    actual.Should().BeFalse();
-  }
+		// --assert
+		actual.Should().BeFalse();
+	}
 
-  [TestCaseSource(nameof(RaiseWays))]
-  public void raise_should_return_false_if_dynamic_transition_returns_false_reference_type(RaiseWay raiseWay)
-  {
-    // --arrange
-    var builder = new Builder<string, int>(OnException);
+	[TestCaseSource(nameof(RaiseWays))]
+	public void raise_should_return_false_if_dynamic_transition_returns_false_reference_type(RaiseWay raiseWay)
+	{
+		// --arrange
+		var builder = new Builder<string, int>(OnException);
 
-    static bool DynamicTransition(out string stateId)
-    {
-      stateId = StateX;
+		static bool DynamicTransition(out string stateId)
+		{
+			stateId = StateX;
 
-      return false;
-    }
+			return false;
+		}
 
-    builder.DefineState(Initial)
-           .AddTransition(GoToStateX, DynamicTransition);
+		builder.DefineState(Initial)
+					 .AddTransition(GoToStateX, DynamicTransition);
 
-    builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
+		builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
 
-    var target = builder.Build(Initial);
+		var target = builder.Build(Initial);
 
-    // --act
-    var actual = target.Raise(raiseWay, GoToStateX);
+		// --act
+		var actual = target.Raise(raiseWay, GoToStateX);
 
-    // --assert
-    actual.Should().BeFalse();
-  }
+		// --assert
+		actual.Should().BeFalse();
+	}
 
-  [TestCaseSource(nameof(RaiseWays))]
-  public void raise_should_return_false_if_dynamic_transition_returns_null(RaiseWay raiseWay)
-  {
-    // --arrange
-    var builder = new Builder<string, int>(OnException);
+	[TestCaseSource(nameof(RaiseWays))]
+	public void raise_should_return_false_if_dynamic_transition_returns_null(RaiseWay raiseWay)
+	{
+		// --arrange
+		var builder = new Builder<string, int>(OnException);
 
-    builder.DefineState(Initial)
-           .AddTransition(GoToStateX, () => null);
+		builder.DefineState(Initial)
+					 .AddTransition(GoToStateX, () => null);
 
-    builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
+		builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
 
-    var target = builder.Build(Initial);
+		var target = builder.Build(Initial);
 
-    // --act
-    var actual = target.Raise(raiseWay, GoToStateX);
+		// --act
+		var actual = target.Raise(raiseWay, GoToStateX);
 
-    // --assert
-    actual.Should().BeFalse();
-  }
+		// --assert
+		actual.Should().BeFalse();
+	}
 
-  [TestCaseSource(nameof(RaiseWays))]
-  public void raise_should_return_false_if_dynamic_transition_returns_default(RaiseWay raiseWay)
-  {
-    const int initialStateId = 1;
-    const int stateId        = 2;
+	[TestCaseSource(nameof(RaiseWays))]
+	public void raise_should_return_false_if_dynamic_transition_returns_default(RaiseWay raiseWay)
+	{
+		const int initialStateId = 1;
+		const int stateId        = 2;
 
-    // --arrange
-    var builder = new Builder<int, int>(OnException);
+		// --arrange
+		var builder = new Builder<int, int>(OnException);
 
-    builder.DefineState(initialStateId)
-           .AddTransition(GoToStateX, () => default);
+		builder.DefineState(initialStateId)
+					 .AddTransition(GoToStateX, () => default);
 
-    builder.DefineState(stateId).OnEnter(() => Assert.Fail("No transition should be performed"));
+		builder.DefineState(stateId).OnEnter(() => Assert.Fail("No transition should be performed"));
 
-    var target = builder.Build(initialStateId);
+		var target = builder.Build(initialStateId);
 
-    // --act
-    var actual = target.Raise(raiseWay, GoToStateX);
+		// --act
+		var actual = target.Raise(raiseWay, GoToStateX);
 
-    // --assert
-    actual.Should().BeFalse();
-  }
+		// --assert
+		actual.Should().BeFalse();
+	}
 
-  [Test]
-  public void controller_should_return_false_if_dynamic_transition_returns_null()
-  {
-    // --arrange
-    var builder = new Builder<string, string>(OnException);
+	[Test]
+	public void controller_should_return_false_if_dynamic_transition_returns_null()
+	{
+		// --arrange
+		var builder = new Builder<string, string>(OnException);
 
-    builder.DefineState(Initial)
-           .OnEnter(OnEnterInitialState)
-           .AddTransition(StateX, () => null);
+		builder.DefineState(Initial)
+					 .OnEnter(OnEnterInitialState)
+					 .AddTransition(StateX, () => null);
 
-    builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
+		builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
 
-    builder.Build(Initial);
+		builder.Build(Initial);
 
-    static void OnEnterInitialState(IStateController<string> stateMachine)
-    {
-      // --act
-      var actual = stateMachine.RaiseAsync(StateX);
+		static void OnEnterInitialState(IStateController<string> stateMachine)
+		{
+			// --act
+			var actual = stateMachine.RaiseAsync(StateX);
 
-      // --assert
-      actual.Should().BeFalse();
-    }
-  }
+			// --assert
+			actual.Should().BeFalse();
+		}
+	}
 
-  [Test]
-  public void controller_should_return_false_if_dynamic_transition_returns_default()
-  {
-    const int initialStateId = 1;
-    const int stateId        = 2;
+	[Test]
+	public void controller_should_return_false_if_dynamic_transition_returns_default()
+	{
+		const int initialStateId = 1;
+		const int stateId        = 2;
 
-    // --arrange
-    var builder = new Builder<int, int>(OnException);
+		// --arrange
+		var builder = new Builder<int, int>(OnException);
 
-    builder.DefineState(initialStateId)
-           .OnEnter(OnEnterInitialState)
-           .AddTransition(GoToStateX, () => default);
+		builder.DefineState(initialStateId)
+					 .OnEnter(OnEnterInitialState)
+					 .AddTransition(GoToStateX, () => default);
 
-    builder.DefineState(stateId).OnEnter(() => Assert.Fail("No transition should be performed"));
+		builder.DefineState(stateId).OnEnter(() => Assert.Fail("No transition should be performed"));
 
-    builder.Build(initialStateId);
+		builder.Build(initialStateId);
 
-    static void OnEnterInitialState(IStateController<int> stateMachine)
-    {
-      // --act
-      var actual = stateMachine.RaiseAsync(GoToStateX);
+		static void OnEnterInitialState(IStateController<int> stateMachine)
+		{
+			// --act
+			var actual = stateMachine.RaiseAsync(GoToStateX);
 
-      // --assert
-      actual.Should().BeFalse();
-    }
-  }
+			// --assert
+			actual.Should().BeFalse();
+		}
+	}
 
-  [TestCaseSource(nameof(RaiseWays))]
-  public void should_use_parent_transition(RaiseWay raiseWay)
-  {
-    var actual = new List<string>();
+	[TestCaseSource(nameof(RaiseWays))]
+	public void should_use_parent_transition(RaiseWay raiseWay)
+	{
+		var actual = new List<string>();
 
-    // --arrange
-    var builder = new Builder<string, string>(OnException);
+		// --arrange
+		var builder = new Builder<string, string>(OnException);
 
-    builder.DefineState(Initial).AddTransition(Child, Child);
+		builder.DefineState(Initial).AddTransition(Child, Child);
 
-    builder.DefineState(Parent)
-           .AddTransition(StateX, StateX, () => actual.Add(Parent));
+		builder.DefineState(Parent)
+					 .AddTransition(StateX, StateX, () => actual.Add(Parent));
 
-    builder.DefineState(Child).AsSubstateOf(Parent);
+		builder.DefineState(Child).AsSubstateOf(Parent);
 
-    builder.DefineState(StateX)
-           .OnEnter(_ => actual.Add(StateX));
+		builder.DefineState(StateX)
+					 .OnEnter(_ => actual.Add(StateX));
 
-    var target = builder.Build(Initial);
-    target.Raise(raiseWay, Child);
+		var target = builder.Build(Initial);
+		target.Raise(raiseWay, Child);
 
-    // --act
-    target.Raise(raiseWay, StateX);
+		// --act
+		target.Raise(raiseWay, StateX);
 
-    // --assert
-    actual.Should().Equal(Parent, StateX);
-  }
+		// --assert
+		actual.Should().Equal(Parent, StateX);
+	}
 
-  [TestCaseSource(nameof(RaiseWays))]
-  public void should_catch_user_action_exception_and_report(RaiseWay raiseWay)
-  {
-    var onException = A.Fake<Action<Exception>>();
+	[TestCaseSource(nameof(RaiseWays))]
+	public void should_catch_user_action_exception_and_report(RaiseWay raiseWay)
+	{
+		var onException = A.Fake<Action<Exception>>();
 
-    // --arrange
-    var builder = new Builder<string, string>(onException);
+		// --arrange
+		var builder = new Builder<string, string>(onException);
 
-    builder.DefineState(Initial)
-           .AddTransition(StateX, StateX, () => throw new TestException());
+		builder.DefineState(Initial)
+					 .AddTransition(StateX, StateX, () => throw new TestException());
 
-    builder.DefineState(StateX);
+		builder.DefineState(StateX);
 
-    var target = builder.Build(Initial);
+		var target = builder.Build(Initial);
 
-    // --act
-    var actual = target.Raise(raiseWay, StateX);
+		// --act
+		var actual = target.Raise(raiseWay, StateX);
 
-    // --assert
-    actual.Should().BeTrue();
-    A.CallTo(() => onException(An<Exception>.That.Matches(exc => exc is TestException))).MustHaveHappenedOnceExactly();
-  }
+		// --assert
+		actual.Should().BeTrue();
+		A.CallTo(() => onException(An<Exception>.That.Matches(exc => exc is TestException))).MustHaveHappenedOnceExactly();
+	}
 
-  [Test]
-  public void should_throw_exception_if_transitions_to_different_states_by_one_event()
-  {
-    var builder = new Builder<string, int>(OnException);
+	[Test]
+	public void should_throw_exception_if_transitions_to_different_states_by_one_event()
+	{
+		var builder = new Builder<string, int>(OnException);
 
-    var config = builder
-                .DefineState(Initial)
-                .AddTransition(GoToStateX, StateX);
+		var config = builder
+								.DefineState(Initial)
+								.AddTransition(GoToStateX, StateX);
 
-    // --act
-    Action target = () => config.AddTransition(GoToStateX, StateY);
+		// --act
+		Action target = () => config.AddTransition(GoToStateX, StateY);
 
-    // --assert
-    target.Should().ThrowExactly<ArgumentException>().WithMessage("An item with the same key has already been added*");
-  }
+		// --assert
+		target.Should().ThrowExactly<ArgumentException>().WithMessage("An item with the same key has already been added*");
+	}
 
-  [TestCaseSource(nameof(RaiseWays))]
-  public void should_not_perform_transition_if_dynamic_transition_throws_exception(RaiseWay raiseWay)
-  {
-    var onException = A.Fake<Action<Exception>>();
+	[TestCaseSource(nameof(RaiseWays))]
+	public void should_not_perform_transition_if_dynamic_transition_throws_exception(RaiseWay raiseWay)
+	{
+		var onException = A.Fake<Action<Exception>>();
 
-    // --arrange
-    var builder = new Builder<string, int>(onException);
+		// --arrange
+		var builder = new Builder<string, int>(onException);
 
-    builder
-     .DefineState(Initial)
-     .AddTransition(GoToStateX, () => throw new TestException());
+		builder
+		 .DefineState(Initial)
+		 .AddTransition(GoToStateX, () => throw new TestException());
 
-    var target = builder.Build(Initial);
+		var target = builder.Build(Initial);
 
-    // --act
-    var result = target.Raise(raiseWay, GoToStateX);
+		// --act
+		var result = target.Raise(raiseWay, GoToStateX);
 
-    // --assert
-    result.Should().BeFalse();
-    A.CallTo(() => onException(An<Exception>.That.Matches(exc => exc is TestException))).MustHaveHappenedOnceExactly();
-  }
+		// --assert
+		result.Should().BeFalse();
+		A.CallTo(() => onException(An<Exception>.That.Matches(exc => exc is TestException))).MustHaveHappenedOnceExactly();
+	}
 }

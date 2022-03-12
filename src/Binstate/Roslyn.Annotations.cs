@@ -1,4 +1,4 @@
-// ReSharper disable All
+﻿// ReSharper disable All
 #pragma warning disable CS1591
 
 namespace System.Diagnostics.CodeAnalysis;
@@ -6,9 +6,9 @@ namespace System.Diagnostics.CodeAnalysis;
 [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
 public sealed class NotNullWhenAttribute : Attribute
 {
-  public NotNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
+	public NotNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
 
-  public bool ReturnValue { get; }
+	public bool ReturnValue { get; }
 }
 
 [AttributeUsage(AttributeTargets.Method, Inherited = false)]

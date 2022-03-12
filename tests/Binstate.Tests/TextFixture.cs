@@ -8,10 +8,10 @@ namespace Binstate.Tests;
 public class TextFixture
 {
 
-  [OneTimeSetUp]
-  public void BeforeAllTestsRun()
-  {
-    Trace.Listeners.Clear();
-    Trace.Listeners.Add(new ConsoleTraceListener());
-  }
+	[OneTimeSetUp]
+	public void BeforeAllTestsRun()
+	{
+		Trace.Listeners.Clear();
+		Trace.Listeners.Add(new ConsoleTraceListener());
+	}
 }

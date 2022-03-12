@@ -12,52 +12,52 @@ namespace Binstate;
 /// </summary>
 public interface ITuple<out TX, out TY>
 {
-  /// <summary />
-  TX ItemX { get; }
+	/// <summary />
+	TX ItemX { get; }
 
-  /// <summary />
-  TY ItemY { get; }
+	/// <summary />
+	TY ItemY { get; }
 }
 
 /// <inheritdoc />
 public class Tuple<TX, TY> : ITuple<TX, TY>
 {
-  /// <summary />
-  public Tuple(TX x, TY y)
-  {
-    ItemX  = x;
-    ItemY = y;
-  }
+	/// <summary />
+	public Tuple(TX x, TY y)
+	{
+		ItemX  = x;
+		ItemY = y;
+	}
 
-  /// <inheritdoc />
-  public TX ItemX { get; }
+	/// <inheritdoc />
+	public TX ItemX { get; }
 
-  /// <inheritdoc />
-  public TY ItemY { get; }
+	/// <inheritdoc />
+	public TY ItemY { get; }
 
-  private bool Equals(ITuple<TX, TY>? other)
-    => other is not null
-    && EqualityComparer<TX>.Default.Equals(ItemX, other.ItemX)
-    && EqualityComparer<TY>.Default.Equals(ItemY, other.ItemY);
+	private bool Equals(ITuple<TX, TY>? other)
+		=> other is not null
+		&& EqualityComparer<TX>.Default.Equals(ItemX, other.ItemX)
+		&& EqualityComparer<TY>.Default.Equals(ItemY, other.ItemY);
 
-  /// <remarks> Equals doesnt check exact type of other object, only if it can be cast to <see cref="ITuple{TPassed,TRelay}" /> </remarks>
-  public override bool Equals(object? obj)
-  {
-    if(ReferenceEquals(null, obj)) return false;
-    if(ReferenceEquals(this, obj)) return true;
+	/// <remarks> Equals doesnt check exact type of other object, only if it can be cast to <see cref="ITuple{TPassed,TRelay}" /> </remarks>
+	public override bool Equals(object? obj)
+	{
+		if(ReferenceEquals(null, obj)) return false;
+		if(ReferenceEquals(this, obj)) return true;
 
-    return Equals(obj as ITuple<TX, TY>);
-  }
+		return Equals(obj as ITuple<TX, TY>);
+	}
 
-  /// <summary />
-  public override int GetHashCode()
-  {
-    unchecked
-    {
-      return ( EqualityComparer<TX>.Default.GetHashCode(ItemX) * 397 ) ^ EqualityComparer<TY>.Default.GetHashCode(ItemY);
-    }
-  }
+	/// <summary />
+	public override int GetHashCode()
+	{
+		unchecked
+		{
+			return ( EqualityComparer<TX>.Default.GetHashCode(ItemX) * 397 ) ^ EqualityComparer<TY>.Default.GetHashCode(ItemY);
+		}
+	}
 
-  /// <inheritdoc />
-  public override string ToString() => $"{{{nameof(ItemX)}: {ItemX}, {nameof(ItemY)}:{ItemY}}}";
+	/// <inheritdoc />
+	public override string ToString() => $"{{{nameof(ItemX)}: {ItemX}, {nameof(ItemY)}:{ItemY}}}";
 }

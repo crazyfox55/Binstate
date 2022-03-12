@@ -2,5 +2,5 @@
 
 public static class TestCategory
 {
-  public const string MemoryTest = nameof(MemoryTest);
+	public const string MemoryTest = nameof(MemoryTest);
 }

@@ -1,4 +1,4 @@
-/* MIT License
+﻿/* MIT License
 
 Copyright (c) 2016 JetBrains http://www.jetbrains.com
 
@@ -49,24 +49,24 @@ namespace JetBrains.Annotations;
 [Conditional("JETBRAINS_ANNOTATIONS")]
 internal sealed class UsedImplicitlyAttribute : Attribute
 {
-  public UsedImplicitlyAttribute()
-    : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
+	public UsedImplicitlyAttribute()
+		: this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
 
-  public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags)
-    : this(useKindFlags, ImplicitUseTargetFlags.Default) { }
+	public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags)
+		: this(useKindFlags, ImplicitUseTargetFlags.Default) { }
 
-  public UsedImplicitlyAttribute(ImplicitUseTargetFlags targetFlags)
-    : this(ImplicitUseKindFlags.Default, targetFlags) { }
+	public UsedImplicitlyAttribute(ImplicitUseTargetFlags targetFlags)
+		: this(ImplicitUseKindFlags.Default, targetFlags) { }
 
-  public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
-  {
-    UseKindFlags = useKindFlags;
-    TargetFlags  = targetFlags;
-  }
+	public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
+	{
+		UseKindFlags = useKindFlags;
+		TargetFlags  = targetFlags;
+	}
 
-  public ImplicitUseKindFlags UseKindFlags { get; }
+	public ImplicitUseKindFlags UseKindFlags { get; }
 
-  public ImplicitUseTargetFlags TargetFlags { get; }
+	public ImplicitUseTargetFlags TargetFlags { get; }
 }
 
 /// <summary>
@@ -79,26 +79,26 @@ internal sealed class UsedImplicitlyAttribute : Attribute
 [Conditional("JETBRAINS_ANNOTATIONS")]
 internal sealed class MeansImplicitUseAttribute : Attribute
 {
-  public MeansImplicitUseAttribute()
-    : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
+	public MeansImplicitUseAttribute()
+		: this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
 
-  public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags)
-    : this(useKindFlags, ImplicitUseTargetFlags.Default) { }
+	public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags)
+		: this(useKindFlags, ImplicitUseTargetFlags.Default) { }
 
-  public MeansImplicitUseAttribute(ImplicitUseTargetFlags targetFlags)
-    : this(ImplicitUseKindFlags.Default, targetFlags) { }
+	public MeansImplicitUseAttribute(ImplicitUseTargetFlags targetFlags)
+		: this(ImplicitUseKindFlags.Default, targetFlags) { }
 
-  public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
-  {
-    UseKindFlags = useKindFlags;
-    TargetFlags  = targetFlags;
-  }
+	public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
+	{
+		UseKindFlags = useKindFlags;
+		TargetFlags  = targetFlags;
+	}
 
-  [UsedImplicitly]
-  public ImplicitUseKindFlags UseKindFlags { get; }
+	[UsedImplicitly]
+	public ImplicitUseKindFlags UseKindFlags { get; }
 
-  [UsedImplicitly]
-  public ImplicitUseTargetFlags TargetFlags { get; }
+	[UsedImplicitly]
+	public ImplicitUseTargetFlags TargetFlags { get; }
 }
 
 /// <summary>
@@ -108,18 +108,18 @@ internal sealed class MeansImplicitUseAttribute : Attribute
 [Flags]
 internal enum ImplicitUseKindFlags
 {
-  Default = Access | Assign | InstantiatedWithFixedConstructorSignature,
-  /// <summary>Only entity marked with attribute considered used.</summary>
-  Access = 1,
-  /// <summary>Indicates implicit assignment to a member.</summary>
-  Assign = 2,
-  /// <summary>
-  /// Indicates implicit instantiation of a type with fixed constructor signature.
-  /// That means any unused constructor parameters won't be reported as such.
-  /// </summary>
-  InstantiatedWithFixedConstructorSignature = 4,
-  /// <summary>Indicates implicit instantiation of a type.</summary>
-  InstantiatedNoFixedConstructorSignature = 8,
+	Default = Access | Assign | InstantiatedWithFixedConstructorSignature,
+	/// <summary>Only entity marked with attribute considered used.</summary>
+	Access = 1,
+	/// <summary>Indicates implicit assignment to a member.</summary>
+	Assign = 2,
+	/// <summary>
+	/// Indicates implicit instantiation of a type with fixed constructor signature.
+	/// That means any unused constructor parameters won't be reported as such.
+	/// </summary>
+	InstantiatedWithFixedConstructorSignature = 4,
+	/// <summary>Indicates implicit instantiation of a type.</summary>
+	InstantiatedNoFixedConstructorSignature = 8,
 }
 
 /// <summary>
@@ -129,14 +129,14 @@ internal enum ImplicitUseKindFlags
 [Flags]
 internal enum ImplicitUseTargetFlags
 {
-  Default = Itself,
-  Itself  = 1,
-  /// <summary>Members of the type marked with the attribute are considered used.</summary>
-  Members = 2,
-  /// <summary> Inherited entities are considered used. </summary>
-  WithInheritors = 4,
-  /// <summary>Entity marked with the attribute and all its members considered used.</summary>
-  WithMembers = Itself | Members
+	Default = Itself,
+	Itself  = 1,
+	/// <summary>Members of the type marked with the attribute are considered used.</summary>
+	Members = 2,
+	/// <summary> Inherited entities are considered used. </summary>
+	WithInheritors = 4,
+	/// <summary>Entity marked with the attribute and all its members considered used.</summary>
+	WithMembers = Itself | Members
 }
 
 /// <summary>
@@ -148,11 +148,11 @@ internal enum ImplicitUseTargetFlags
 [Conditional("JETBRAINS_ANNOTATIONS")]
 internal sealed class PublicAPIAttribute : Attribute
 {
-  public PublicAPIAttribute() { }
+	public PublicAPIAttribute() { }
 
-  public PublicAPIAttribute(string comment) => Comment = comment;
+	public PublicAPIAttribute(string comment) => Comment = comment;
 
-  public string? Comment { get; }
+	public string? Comment { get; }
 }
 
 /// <summary>
@@ -181,15 +181,15 @@ internal sealed class InstantHandleAttribute : Attribute { }
 [Conditional("JETBRAINS_ANNOTATIONS")]
 internal sealed class StringFormatMethodAttribute : Attribute
 {
-  /// <param name="formatParameterName">
-  /// Specifies which parameter of an annotated method should be treated as the format string
-  /// </param>
-  public StringFormatMethodAttribute(string formatParameterName)
-  {
-    FormatParameterName = formatParameterName;
-  }
+	/// <param name="formatParameterName">
+	/// Specifies which parameter of an annotated method should be treated as the format string
+	/// </param>
+	public StringFormatMethodAttribute(string formatParameterName)
+	{
+		FormatParameterName = formatParameterName;
+	}
 
-  public string FormatParameterName { get; }
+	public string FormatParameterName { get; }
 }
 
 /// <summary>
