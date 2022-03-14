@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Binstate;
 
@@ -54,7 +55,7 @@ public class Builder<TState, TEvent> where TState : notnull where TEvent : notnu
 	/// <param name="initialStateArgument"> If initial state requires argument use this overload to pass it </param>
 	/// <param name="argumentTransferMode">The mode of transferring arguments to new newly activated states. See <see cref="ArgumentTransferMode"/> for details.</param>
 	/// <exception cref="InvalidOperationException"> Throws if there are any inconsistencies in the provided configuration. </exception>
-	public IStateMachine<TEvent> Build<T>(TState initialStateId, T initialStateArgument, ArgumentTransferMode argumentTransferMode = ArgumentTransferMode.Strict)
+	public async Task<IStateMachine<TEvent>> Build<T>(TState initialStateId, T initialStateArgument, ArgumentTransferMode argumentTransferMode = ArgumentTransferMode.Strict)
 	{
 		if(initialStateId is null) throw new ArgumentNullException(nameof(initialStateId));
 
@@ -77,7 +78,7 @@ public class Builder<TState, TEvent> where TState : notnull where TEvent : notnu
 			ValidateSubstateEnterArgument(states);
 
 		var stateMachine = new StateMachine<TState, TEvent>(states, _onException, initialStateId);
-		stateMachine.EnterInitialState(initialStateArgument);
+		await stateMachine.EnterInitialState(initialStateArgument).ConfigureAwait(false);
 		return stateMachine;
 	}
 
@@ -103,7 +104,7 @@ public class Builder<TState, TEvent> where TState : notnull where TEvent : notnu
 	/// <param name="initialStateId"> The initial state of the state machine. </param>
 	/// <param name="argumentTransferMode">The mode of transferring arguments to new newly activated states. See <see cref="ArgumentTransferMode"/> for details.</param>
 	/// <exception cref="InvalidOperationException"> Throws if there are any inconsistencies in the provided configuration. </exception>
-	public IStateMachine<TEvent> Build(TState initialStateId, ArgumentTransferMode argumentTransferMode = ArgumentTransferMode.Strict)
+	public Task<IStateMachine<TEvent>> Build(TState initialStateId, ArgumentTransferMode argumentTransferMode = ArgumentTransferMode.Strict)
 		=> Build<Unit>(initialStateId, default, argumentTransferMode);
 
 	private bool IfTransitionDefined(Config<TState, TEvent>.StateConfig stateConfig)
@@ -175,9 +176,9 @@ public class Builder<TState, TEvent> where TState : notnull where TEvent : notnu
 /// <summary>
 /// Possible modes of transferring arguments during state transition from the currently active states to the newly activated.
 /// When transition is performed the state machine looks up for a required argument in the following order:
-///  * Not fallback argument passed to the <see cref="IStateMachine{TEvent}.Raise{T}"/> (or overload) method
+///  * Not fallback argument passed to the <see cref="IStateMachine{TEvent}.RaiseAsync{T}"/> (or overload) method
 ///  * Active state and all its parents
-///  * Fallback argument passed to the <see cref="IStateMachine{TEvent}.Raise{T}"/> (or overload) method
+///  * Fallback argument passed to the <see cref="IStateMachine{TEvent}.RaiseAsync{T}"/> (or overload) method
 /// </summary>
 public enum ArgumentTransferMode
 {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Binstate.Tests.Util;
 using FakeItEasy;
 using NUnit.Framework;
@@ -8,7 +9,7 @@ namespace Binstate.Tests;
 public class ExitActionTest : StateMachineTestBase
 {
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_call_exit_action(RaiseWay raiseWay)
+	public async Task should_call_exit_action(RaiseWay raiseWay)
 	{
 		var onExit = A.Fake<Action>();
 
@@ -18,17 +19,17 @@ public class ExitActionTest : StateMachineTestBase
 		builder.DefineState(Initial).OnExit(onExit).AddTransition(GoToStateX, StateX);
 		builder.DefineState(StateX);
 
-		var target = builder.Build(Initial);
+		var target = await builder.Build(Initial);
 
 		// --act
-		target.Raise(raiseWay, GoToStateX);
+		await target.RaiseAsync(raiseWay, GoToStateX);
 
 		// --assert
 		A.CallTo(() => onExit()).MustHaveHappenedOnceExactly();
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_call_exit_action_w_argument(RaiseWay raiseWay)
+	public async Task should_call_exit_action_w_argument(RaiseWay raiseWay)
 	{
 		const string expected = "argument";
 		var          onExit  = A.Fake<Action<string>>();
@@ -39,17 +40,17 @@ public class ExitActionTest : StateMachineTestBase
 		builder.DefineState(Initial).OnExit(onExit).AddTransition(GoToStateX, StateX);
 		builder.DefineState(StateX);
 
-		var target = builder.Build(Initial, expected);
+		var target = await builder.Build(Initial, expected);
 
 		// --act
-		target.Raise(raiseWay, GoToStateX);
+		await target.RaiseAsync(raiseWay, GoToStateX);
 
 		// --assert
 		A.CallTo(() => onExit(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_call_exit_action_w_argument_from_prev_active_state(RaiseWay raiseWay)
+	public async Task should_call_exit_action_w_argument_from_prev_active_state(RaiseWay raiseWay)
 	{
 		const string expected = "argument";
 		var          onExitInitial = A.Fake<Action<string>>();
@@ -62,18 +63,18 @@ public class ExitActionTest : StateMachineTestBase
 		builder.DefineState(StateX).OnExit(onExitX).AddTransition(GoToStateY, StateY);
 		builder.DefineState(StateY);
 
-		var target = builder.Build(Initial, expected);
-		target.Raise(raiseWay, GoToStateX);
+		var target = await builder.Build(Initial, expected);
+		await target.RaiseAsync(raiseWay, GoToStateX);
 
 		// --act
-		target.Raise(raiseWay, GoToStateY);
+		await target.RaiseAsync(raiseWay, GoToStateY);
 
 		// --assert
 		A.CallTo(() => onExitX(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_call_parent_exit_action_w_argument(RaiseWay raiseWay)
+	public async Task should_call_parent_exit_action_w_argument(RaiseWay raiseWay)
 	{
 		const string expected      = "argument";
 		var          onExitParent = A.Fake<Action<string>>();
@@ -85,10 +86,10 @@ public class ExitActionTest : StateMachineTestBase
 		builder.DefineState(Initial).AsSubstateOf(Parent).AddTransition(GoToChild, Child);
 		builder.DefineState(Child); // Child is w/o Exit and argument
 
-		var target = builder.Build(Initial, expected);
+		var target = await builder.Build(Initial, expected);
 
 		// --act
-		target.Raise(raiseWay, GoToChild);
+		await target.RaiseAsync(raiseWay, GoToChild);
 
 		// --assert
 		A.CallTo(() => onExitParent(expected)).MustHaveHappenedOnceAndOnly();

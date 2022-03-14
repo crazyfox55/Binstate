@@ -4,7 +4,7 @@ namespace Binstate;
 
 public static partial class Config<TState, TEvent>
 {
-	internal class Exit : Transitions, IExitEx
+	internal class Exit : Transitions, IExit
 	{
 		protected Exit(StateConfig stateConfig) : base(stateConfig) { }
 

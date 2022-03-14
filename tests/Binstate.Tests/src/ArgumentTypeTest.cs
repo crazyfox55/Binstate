@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Binstate.Tests.Util;
 using FakeItEasy;
 using NUnit.Framework;
@@ -9,7 +10,7 @@ public class ArgumentTypeTest : StateMachineTestBase
 {
 	[Test]
 	[Description("If argument type is set by OnEnter action, no parameters, Exit and Transition should work")]
-	public void set_type_in_enter()
+	public async Task set_type_in_enter()
 	{
 		const string expected = "arg";
 
@@ -28,8 +29,9 @@ public class ArgumentTypeTest : StateMachineTestBase
 		target.DefineState(StateX);
 
 		// --act
-		var sm = target.Build(Initial, expected);
-		sm.Raise(GoToStateX);
+		var sm = await target.Build(Initial, expected);
+
+		await sm.RaiseAsync(GoToStateX);
 
 		// --assert
 		A.CallTo(() => onEnter(expected)).MustHaveHappenedOnceExactly();
@@ -39,7 +41,7 @@ public class ArgumentTypeTest : StateMachineTestBase
 
 	[Test]
 	[Description("If argument type is set by OnExit action, no parameters, Enter and Transition should work")]
-	public void set_type_in_exit()
+	public async Task set_type_in_exit()
 	{
 		const string expected = "arg";
 
@@ -58,8 +60,9 @@ public class ArgumentTypeTest : StateMachineTestBase
 		target.DefineState(StateX);
 
 		// --act
-		var sm = target.Build(Initial, expected);
-		sm.Raise(GoToStateX);
+		var sm = await target.Build(Initial, expected);
+
+		await sm.RaiseAsync(GoToStateX);
 
 		// --assert
 		A.CallTo(() => onEnter()).MustHaveHappenedOnceExactly();
@@ -69,7 +72,7 @@ public class ArgumentTypeTest : StateMachineTestBase
 
 	[Test]
 	[Description("If argument type is set by OnTransition action, no parameters, Enter and Exit should work")]
-	public void set_type_in_transition()
+	public async Task set_type_in_transition()
 	{
 		const string expected = "arg";
 
@@ -88,8 +91,8 @@ public class ArgumentTypeTest : StateMachineTestBase
 		target.DefineState(StateX);
 
 		// --act
-		var sm = target.Build(Initial, expected);
-		sm.Raise(GoToStateX);
+		var sm = await target.Build(Initial, expected);
+		await sm.RaiseAsync(GoToStateX);
 
 		// --assert
 		A.CallTo(() => onEnter()).MustHaveHappenedOnceExactly();

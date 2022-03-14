@@ -1,5 +1,6 @@
 ﻿global using static Binstate.Tests.TestCategory;
 using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using JetBrains.dotMemoryUnit;
 using NUnit.Framework;
@@ -12,7 +13,7 @@ public class BoxingTest : StateMachineTestBase
 	[Category(MemoryTest)]
 	[DotMemoryUnit(FailIfRunWithoutSupport = false)]
 	[AssertTraffic(AllocatedObjectsCount = 0, Types = new[] { typeof(ValueType1), typeof(ValueType2), })]
-	public void should_not_boxing_passed_value_type_arguments(RaiseWay raiseWay)
+	public async Task should_not_boxing_passed_value_type_arguments(RaiseWay raiseWay)
 	{
 		// don't use FakeItEasy due to it boxes value types during comparison
 
@@ -42,14 +43,14 @@ public class BoxingTest : StateMachineTestBase
 					 .AsSubstateOf(Child)
 					 .OnEnter<ITuple<ValueType2, ValueType1>>(value => actualTuple = value);
 
-		var target = builder.Build(Initial, ArgumentTransferMode.Free);
+		var target = await builder.Build(Initial, ArgumentTransferMode.Free);
 
 		var startPoint = dotMemory.Check();
 
 		// --act
-		target.Raise(raiseWay, GoToStateX, expected1); // pass to State1
+		await target.RaiseAsync(raiseWay, GoToStateX, expected1); // pass to State1
 
-		target.Raise(raiseWay, GoToStateY, expected2); // pass everywhere
+		await target.RaiseAsync(raiseWay, GoToStateY, expected2); // pass everywhere
 
 		// --assert
 		dotMemory.Check(

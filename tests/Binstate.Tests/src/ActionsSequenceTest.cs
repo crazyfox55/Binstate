@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using FakeItEasy;
 using FluentAssertions;
 using NUnit.Framework;
@@ -10,7 +11,7 @@ namespace Binstate.Tests;
 public class EnterExitActionsTest : StateMachineTestBase
 {
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_finish_enter_before_call_exit_and_call_next_enter(RaiseWay raiseWay)
+	public async Task should_finish_enter_before_call_exit_and_call_next_enter(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
 
@@ -22,39 +23,36 @@ public class EnterExitActionsTest : StateMachineTestBase
 		var builder = new Builder<string, int>(OnException);
 		builder.DefineState(Initial).AddTransition(GoToStateX, StateX);
 
-		builder
-		 .DefineState(StateX)
-		 .OnEnter(
-				_ =>
+		builder.DefineState(StateX)
+			.OnRun(_ =>
 				{
 					Thread.Sleep(299);
 					actual.Add(enter1);
 				}
 			)
-		 .OnExit(
-				() =>
+			.OnExit(() =>
 				{
 					Thread.Sleep(382);
 					actual.Add(exit1);
 				}
 			)
-		 .AddTransition(GoToStateY, StateY);
+			.AddTransition(GoToStateY, StateY);
 
 		builder.DefineState(StateY)
-					 .OnEnter(_ => actual.Add(enter2));
+			.OnEnter(() => actual.Add(enter2));
 
-		var target = builder.Build(Initial);
-		target.Raise(raiseWay, GoToStateX);
+		var target = await builder.Build(Initial);
+		await target.RaiseAsync(raiseWay, GoToStateX);
 
 		// --act
-		target.Raise(raiseWay, GoToStateY);
+		await target.RaiseAsync(raiseWay, GoToStateY);
 
 		// --assert
 		actual.Should().BeEquivalentTo(enter1, exit1, enter2);
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_call_exit_and_enter_on_reentering(RaiseWay raiseWay)
+	public async Task should_call_exit_and_enter_on_reentering(RaiseWay raiseWay)
 	{
 		const string enter = nameof(enter);
 		const string exit  = nameof(exit);
@@ -68,22 +66,22 @@ public class EnterExitActionsTest : StateMachineTestBase
 
 		builder
 		 .DefineState(StateX)
-		 .OnEnter(_ => actual.Add(enter))
+		 .OnEnter(() => actual.Add(enter))
 		 .OnExit(() => actual.Add(exit))
 		 .AllowReentrancy(GoToStateX);
 
-		var target = builder.Build(Initial);
-		target.Raise(raiseWay, GoToStateX);
+		var target = await builder.Build(Initial);
+		await target.RaiseAsync(raiseWay, GoToStateX);
 
 		// --act
-		target.Raise(raiseWay, GoToStateX);
+		await target.RaiseAsync(raiseWay, GoToStateX);
 
 		// --assert
 		actual.Should().BeEquivalentTo(enter, exit, enter);
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_call_enter_exit_and_transition_in_order(RaiseWay raiseWay)
+	public async Task should_call_enter_exit_and_transition_in_order(RaiseWay raiseWay)
 	{
 		var onEnter      = A.Fake<Action>();
 		var onExit       = A.Fake<Action>();
@@ -98,11 +96,11 @@ public class EnterExitActionsTest : StateMachineTestBase
 					 .OnExit(onExit)
 					 .AddTransition(GoToStateY, StateY, onTransition);
 
-		var target = builder.Build(Initial);
+		var target = await builder.Build(Initial);
 
 		// --act
-		target.Raise(raiseWay, GoToStateX);
-		target.Raise(raiseWay, GoToStateY);
+		await target.RaiseAsync(raiseWay, GoToStateX);
+		await target.RaiseAsync(raiseWay, GoToStateY);
 
 		// --assert
 		A.CallTo(() => onEnter()).MustHaveHappenedOnceExactly()

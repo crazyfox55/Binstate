@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Binstate.Tests.Util;
 using FakeItEasy;
 using FluentAssertions;
@@ -9,7 +10,7 @@ namespace Binstate.Tests;
 public class InitialStateTest : StateMachineTestBase
 {
 	[Test]
-	public void should_call_enter_of_initial_state()
+	public async Task should_call_enter_of_initial_state()
 	{
 		var onEnter = A.Fake<Action>();
 
@@ -20,14 +21,14 @@ public class InitialStateTest : StateMachineTestBase
 		target.DefineState(StateX);
 
 		// --act
-		target.Build(Initial, "arg");
+		await target.Build(Initial, "arg");
 
 		// --assert
 		A.CallTo(() => onEnter()).MustHaveHappenedOnceExactly();
 	}
 
 	[Test]
-	public void should_pass_argument_to_initial_state_enter_action()
+	public async Task should_pass_argument_to_initial_state_enter_action()
 	{
 		const string expected = "expected";
 		var          onEnter  = A.Fake<Action<string>>();
@@ -39,14 +40,14 @@ public class InitialStateTest : StateMachineTestBase
 		target.DefineState(StateX);
 
 		// --act
-		target.Build(Initial, expected);
+		await target.Build(Initial, expected);
 
 		// --assert
 		A.CallTo(() => onEnter(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
 	[Test]
-	public void should_pass_argument_to_initial_and_its_parents_states(
+	public async Task should_pass_argument_to_initial_and_its_parents_states(
 		[ValueSource(nameof(EnterExit))] Action<Config<string, int>.IEnter, Action<string>> setupRoot,
 		[ValueSource(nameof(EnterExit))] Action<Config<string, int>.IEnter, Action<string>> setupParent)
 	{
@@ -64,8 +65,8 @@ public class InitialStateTest : StateMachineTestBase
 		target.DefineState(StateX);
 
 		// --act
-		var sm = target.Build(Initial, expected);
-		sm.Raise(GoToStateX); // exit initial state
+		var sm = await target.Build(Initial, expected);
+		await sm.RaiseAsync(GoToStateX); // exit initial state
 
 		// --assert
 		A.CallTo(() => rootAction(expected)).MustHaveHappenedOnceAndOnly();
@@ -106,7 +107,7 @@ public class InitialStateTest : StateMachineTestBase
 	}
 
 	[Test]
-	public void should_use_parent_transition_if_transition_from_initial_state_is_not_set()
+	public async Task should_use_parent_transition_if_transition_from_initial_state_is_not_set()
 	{
 		var onEnterX = A.Fake<Action>();
 
@@ -116,10 +117,10 @@ public class InitialStateTest : StateMachineTestBase
 		builder.DefineState(Parent).AddTransition(GoToStateX, StateX);
 		builder.DefineState(Initial).AsSubstateOf(Parent);
 		builder.DefineState(StateX).OnEnter(onEnterX);
-		var sm = builder.Build(Initial);
+		var sm = await builder.Build(Initial);
 
 		// --act
-		sm.Raise(GoToStateX);
+		await sm.RaiseAsync(GoToStateX);
 
 		// --assert
 		A.CallTo(() => onEnterX()).MustHaveHappenedOnceExactly();

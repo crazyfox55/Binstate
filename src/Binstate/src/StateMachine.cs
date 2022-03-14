@@ -31,21 +31,21 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 		_activeState = GetStateById(initialStateId);
 	}
 
-	/// <inheritdoc />
-	public bool Raise(TEvent @event)
-	{
-		if(@event is null) throw new ArgumentNullException(nameof(@event));
+	///// <inheritdoc />
+	//public bool Raise(TEvent @event)
+	//{
+	//	if(@event is null) throw new ArgumentNullException(nameof(@event));
 
-		return PerformTransitionSync(@event, Unit.Default, true);
-	}
+	//	return PerformTransitionSync(@event, Unit.Default, true);
+	//}
 
-	/// <inheritdoc />
-	public bool Raise<T>(TEvent @event, T argument, bool argumentIsFallback = false)
-	{
-		if(@event is null) throw new ArgumentNullException(nameof(@event));
+	///// <inheritdoc />
+	//public bool Raise<T>(TEvent @event, T argument, bool argumentIsFallback = false)
+	//{
+	//	if(@event is null) throw new ArgumentNullException(nameof(@event));
 
-		return PerformTransitionSync(@event, argument, argumentIsFallback);
-	}
+	//	return PerformTransitionSync(@event, argument, argumentIsFallback);
+	//}
 
 	/// <inheritdoc />
 	public Task<bool> RaiseAsync(TEvent @event)
@@ -63,7 +63,7 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 		return PerformTransitionAsync(@event, argument, argumentIsFallback);
 	}
 
-	internal void EnterInitialState<T>(T initialStateArgument)
+	internal async Task EnterInitialState<T>(T initialStateArgument)
 	{
 		var argumentType = typeof(T);
 		var argumentsBag = new Argument.Bag();
@@ -73,6 +73,7 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 		{
 			// activate all parent states of the initial state
 			var parentState = _activeState;
+			var stack = new Stack<IState<TState, TEvent>>();
 			while(parentState is not null)
 			{
 				var stateArgumentType = parentState.GetArgumentTypeSafe();
@@ -85,12 +86,20 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 						argumentsBag.Add(parentState, () => ( (ISetArgument<T>)copy ).Argument = initialStateArgument);
 					}
 
-				enterActions.Add(ActivateStateNotGuarded(parentState, argumentsBag));
+				stack.Push(parentState);
+
+				//enterActions.Add(ActivateStateNotGuarded(parentState, argumentsBag));
 
 				parentState = parentState.ParentState;
 			}
 
-			CallEnterActions(enterActions);
+			while(stack.Count > 0)
+			{
+				var state = stack.Pop();
+				await ActivateState(state, argumentsBag).ConfigureAwait(false);
+			}
+
+			//CallEnterActions(enterActions);
 		}
 		catch(Exception exception)
 		{
@@ -99,12 +108,12 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 		}
 	}
 
-	private bool PerformTransitionSync<TArgument>(TEvent @event, TArgument argument, bool argumentIsFallback)
-	{
-		var data = PrepareTransition(@event, argument, argumentIsFallback);
+	//private bool PerformTransitionSync<TArgument>(TEvent @event, TArgument argument, bool argumentIsFallback)
+	//{
+	//	var data = PrepareTransition(@event, argument, argumentIsFallback);
 
-		return data != null && PerformTransition(data.Value);
-	}
+	//	return data != null && PerformTransitionAsync(data.Value);
+	//}
 
 	private Task<bool> PerformTransitionAsync<TArgument>(TEvent @event, TArgument argument, bool argumentHasPriority)
 	{
@@ -112,7 +121,7 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 
 		return data is null
 						 ? Task.FromResult(false)
-						 : Task.Run(() => PerformTransition(data.Value));
+						 : PerformTransitionAsync(data.Value);
 	}
 
 	private IState<TState, TEvent> GetStateById(TState state)

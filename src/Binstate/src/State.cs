@@ -9,7 +9,11 @@ internal sealed class State<TState, TEvent, TArgument> : IState<TState, TEvent>,
 	where TState : notnull
 	where TEvent : notnull
 {
-	private readonly object? _enterAction;
+	private readonly Func<TArgument, Task>? _enterAction;
+
+	private readonly Func<IStateController<TEvent>, TArgument, Task>? _runAction;
+
+	private readonly Func<TArgument, Task>? _exitAction;
 
 	/// <summary>
 	///   This event is used to wait while state's 'enter' action is finished before call 'exit' action and change the active state of the state machine.
@@ -18,37 +22,33 @@ internal sealed class State<TState, TEvent, TArgument> : IState<TState, TEvent>,
 	private readonly ManualResetEvent _enterActionFinished = new ManualResetEvent(true);
 
 	/// <summary>
-	///   This event is used to avoid race condition when <see cref="ExitSafe" /> method is called before <see cref="EnterSafe{T}" /> method.
+	///   This event is used to avoid race condition when <see cref="ExitSafeAsync" /> method is called before <see cref="EnterSafeAsync" /> method.
 	///   See usages for details.
 	/// </summary>
 	private readonly ManualResetEvent _entered = new ManualResetEvent(true);
 
-	private readonly object? _exitAction;
+	private Task _running;
 
 	private TArgument? _argument;
 
 	private volatile bool _isActive;
 
-	/// <summary>
-	///   This task is used to wait while state's 'enter' action is finished before call 'exit' action and change the active state of the state machine in
-	///   case of async OnEnter action.
-	///   See usages for details.
-	/// </summary>
-	private Task? _task;
-
 	public State(
 		TState                                         id,
-		object?                                        enterAction,
-		object?                                        exitAction,
+		Func<TArgument, Task>? enterAction,
+		Func<IStateController<TEvent>, TArgument, Task>? runAction,
+		Func<TArgument, Task>? exitAction,
 		Dictionary<TEvent, Transition<TState, TEvent>> transitions,
 		IState<TState, TEvent>?                        parentState)
 	{
 		Id           = id ?? throw new ArgumentNullException(nameof(id));
 		_enterAction = enterAction;
+		_runAction = runAction;
 		_exitAction  = exitAction;
 		Transitions  = transitions ?? throw new ArgumentNullException(nameof(transitions));
 		ParentState  = parentState;
 		DepthInTree  = parentState?.DepthInTree + 1 ?? 0;
+		_running = Task.CompletedTask;
 	}
 
 	public TArgument Argument
@@ -79,20 +79,22 @@ internal sealed class State<TState, TEvent, TArgument> : IState<TState, TEvent>,
 		}
 	}
 
-	public void EnterSafe<TE>(IStateController<TE> stateController, Action<Exception> onException)
+	public async Task EnterSafeAsync(IStateController<TEvent> stateController, Action<Exception> onException)
 	{
 		try
 		{
 			_enterActionFinished.Reset(); // Exit will wait this event before call OnExit so after resetting it
 			_entered.Set();               // it is safe to set the state as entered
 
-			_task = _enterAction switch
+			if (_enterAction != null)
 			{
-				null                                               => null,
-				Func<IStateController<TE>, TArgument, Task?> enter => enter(stateController, Argument),
-				Func<IStateController<TE>, Task?> enter            => enter(stateController),
-				_                                                  => throw new ArgumentOutOfRangeException(),
-			};
+				await _enterAction(Argument).ConfigureAwait(false);
+			}
+
+			if (_runAction != null)
+			{
+				_running = _runAction(stateController, Argument);
+			}
 		}
 		catch(Exception exception)
 		{
@@ -105,16 +107,14 @@ internal sealed class State<TState, TEvent, TArgument> : IState<TState, TEvent>,
 	}
 
 	/// <summary>
-	///   <see cref="ExitSafe" /> can be called earlier then <see cref="Config{TState,TEvent}.Enter" /> of the activated state,
-	///   see <see cref="StateMachine{TState,TEvent}.PerformTransition" /> implementation for details.
+	///   <see cref="ExitSafeAsync" /> can be called earlier then <see cref="Config{TState,TEvent}.Enter" /> of the activated state,
+	///   see <see cref="StateMachine{TState,TEvent}.PerformTransitionAsync" /> implementation for details.
 	///   In this case it should wait till <see cref="Config{TState,TEvent}.Enter" /> will be called and exited, before call exit action
 	/// </summary>
-	public void ExitSafe(Action<Exception> onException)
+	public async Task ExitSafeAsync(Action<Exception> onException)
 	{
 		try
 		{
-			IsActive = false; // signal that current state is no more active and blocking enter action can finish
-
 			// if action is set as active but enter action still is not called, wait for it
 			_entered.WaitOne();
 
@@ -122,22 +122,12 @@ internal sealed class State<TState, TEvent, TArgument> : IState<TState, TEvent>,
 			// if enter action is blocking or no action: _enterFunctionFinished is set means it finishes
 			_enterActionFinished.WaitOne();
 
-			// if async: _enterFunctionFinished is set means there is a value assigned to _task, which allows waiting till action finishes
-			_task?.Wait();
+			IsActive = false; // signal that current state is no more active and blocking enter action can finish
 
-			switch(_exitAction)
+			await _running;
+			if (_exitAction != null)
 			{
-				case null: break;
-
-				case Action action:
-					action();
-					break;
-
-				case Action<TArgument> actionT:
-					actionT(Argument);
-					break;
-
-				default: throw new ArgumentOutOfRangeException();
+				await _exitAction(Argument);
 			}
 		}
 		catch(Exception exception)

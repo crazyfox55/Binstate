@@ -16,7 +16,7 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 	private const string Exit          = nameof(Exit);
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_enter_all_parent_states(RaiseWay raiseWay)
+	public async Task should_enter_all_parent_states(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
 
@@ -29,34 +29,34 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 
 		builder
 		 .DefineState(Root)
-		 .OnEnter(_ => actual.Add(Root));
+		 .OnEnter(() => actual.Add(Root));
 
 		builder
 		 .DefineState(Branch1Level1)
 		 .AsSubstateOf(Root)
-		 .OnEnter(_ => actual.Add(Branch1Level1));
+		 .OnEnter(() => actual.Add(Branch1Level1));
 
 		builder
 		 .DefineState(Branch1Level2)
 		 .AsSubstateOf(Branch1Level1)
-		 .OnEnter(_ => actual.Add(Branch1Level2));
+		 .OnEnter(() => actual.Add(Branch1Level2));
 
 		builder
 		 .DefineState(Branch1Level3)
 		 .AsSubstateOf(Branch1Level2)
-		 .OnEnter(_ => actual.Add(Branch1Level3));
+		 .OnEnter(() => actual.Add(Branch1Level3));
 
-		var target = builder.Build(Initial);
+		var target = await builder.Build(Initial);
 
 		// --act
-		target.Raise(raiseWay, Branch1Level3);
+		await target.RaiseAsync(raiseWay, Branch1Level3);
 
 		// --assert
 		actual.Should().Equal(Root, Branch1Level1, Branch1Level2, Branch1Level3);
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_exit_all_parent_states(RaiseWay raiseWay)
+	public async Task should_exit_all_parent_states(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
 
@@ -77,37 +77,37 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 
 		builder
 		 .DefineState(Root)
-		 .OnEnter(_ => EnterAsync(_, Root))
+		 .OnRun(_ => EnterAsync(_, Root))
 		 .OnExit(() => actual.Add(Root));
 
 		builder
 		 .DefineState(Branch1Level1)
 		 .AsSubstateOf(Root)
-		 .OnEnter(_ => EnterAsync(_, Branch1Level1))
+		 .OnRun(_ => EnterAsync(_, Branch1Level1))
 		 .OnExit(() => actual.Add(Branch1Level1));
 
 		builder
 		 .DefineState(Branch1Level2)
 		 .AsSubstateOf(Branch1Level1)
-		 .OnEnter(_ => EnterAsync(_, Branch1Level2))
+		 .OnRun(_ => EnterAsync(_, Branch1Level2))
 		 .OnExit(() => actual.Add(Branch1Level2));
 
 		builder
 		 .DefineState(Branch1Level3)
 		 .AsSubstateOf(Branch1Level2)
-		 .OnEnter(_ => EnterAsync(_, Branch1Level3))
+		 .OnRun(_ => EnterAsync(_, Branch1Level3))
 		 .OnExit(() => actual.Add(Branch1Level3))
 		 .AddTransition(Free1, Free1);
 
 		builder
 		 .DefineState(Free1)
-		 .OnEnter(_ => actual.Add(Free1));
+		 .OnEnter(() => actual.Add(Free1));
 
-		var target = builder.Build(Initial);
-		target.Raise(raiseWay, Branch1Level3);
+		var target = await builder.Build(Initial);
+		await target.RaiseAsync(raiseWay, Branch1Level3);
 
 		// --act
-		target.Raise(raiseWay, Free1);
+		await target.RaiseAsync(raiseWay, Free1);
 
 		// --assert
 		actual.Should()
@@ -115,7 +115,7 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_not_exit_parent_state(RaiseWay raiseWay)
+	public async Task should_not_exit_parent_state(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
 
@@ -136,39 +136,39 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 
 		builder
 		 .DefineState(Root)
-		 .OnEnter(_ => EnterAsync(_, Root))
+		 .OnRun(_ => EnterAsync(_, Root))
 		 .OnExit(() => actual.Add(Root));
 
 		builder
 		 .DefineState(Branch1Level1)
 		 .AsSubstateOf(Root)
-		 .OnEnter(_ => EnterAsync(_, Branch1Level1))
+		 .OnRun(_ => EnterAsync(_, Branch1Level1))
 		 .OnExit(() => actual.Add(Branch1Level1));
 
 		builder
 		 .DefineState(Branch1Level2)
 		 .AsSubstateOf(Branch1Level1)
-		 .OnEnter(_ => EnterAsync(_, Branch1Level2))
+		 .OnRun(_ => EnterAsync(_, Branch1Level2))
 		 .OnExit(() => actual.Add(Branch1Level2))
 		 .AddTransition(Branch1Level3, Branch1Level3);
 
 		builder
 		 .DefineState(Branch1Level3)
 		 .AsSubstateOf(Branch1Level2)
-		 .OnEnter(_ => actual.Add(Branch1Level3));
+		 .OnEnter(() => actual.Add(Branch1Level3));
 
-		var target = builder.Build(Initial);
-		target.Raise(raiseWay, Branch1Level2);
+		var target = await builder.Build(Initial);
+		await target.RaiseAsync(raiseWay, Branch1Level2);
 
 		// --act
-		target.Raise(raiseWay, Branch1Level3);
+		await target.RaiseAsync(raiseWay, Branch1Level3);
 
 		// --assert
 		actual.Should().Equal(Branch1Level3);
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
-	public void should_not_exit_common_root(RaiseWay raiseWay)
+	public async Task should_not_exit_common_root(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
 
@@ -191,7 +191,7 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 
 		builder
 		 .DefineState(Root)
-		 .OnEnter(RootEnterAsync)
+		 .OnRun(RootEnterAsync)
 		 .OnExit(() => actual.Add(Root));
 
 		builder
@@ -208,18 +208,18 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 		builder
 		 .DefineState(Branch2Level1)
 		 .AsSubstateOf(Root)
-		 .OnEnter(_ => actual.Add(Branch2Level1));
+		 .OnEnter(() => actual.Add(Branch2Level1));
 
 		builder
 		 .DefineState(Branch2Level2)
 		 .AsSubstateOf(Branch2Level1)
-		 .OnEnter(_ => actual.Add(Branch2Level2));
+		 .OnEnter(() => actual.Add(Branch2Level2));
 
-		var target = builder.Build(Initial);
-		target.Raise(raiseWay, Branch1Level2);
+		var target = await builder.Build(Initial);
+		await target.RaiseAsync(raiseWay, Branch1Level2);
 
 		// --act
-		target.Raise(raiseWay, Branch2Level2);
+		await target.RaiseAsync(raiseWay, Branch2Level2);
 
 		// --assert
 		actual.Should().Equal(Root, Branch1Level2, Branch1Level1, Branch2Level1, Branch2Level2);

@@ -80,15 +80,6 @@ public class ConfigurationTest : StateMachineTestBase
 
 		Action target05 = () => config.OnEnter((Action<object, object>)null!);
 		Action target06 = () => config.OnEnter((Func<object, object, Task>)null!);
-
-		Action target07 = () => config.OnEnter((Action<IStateController<string>>)null!);
-		Action target08 = () => config.OnEnter((Func<IStateController<string>, Task>)null!);
-
-		Action target09 = () => config.OnEnter((Action<IStateController<string>, object>)null!);
-		Action target10 = () => config.OnEnter((Func<IStateController<string>, object, Task>)null!);
-
-		Action target11 = () => config.OnEnter((Action<IStateController<string>, object, object>)null!);
-		Action target12 = () => config.OnEnter((Func<IStateController<string>, object, object, Task>)null!);
 #pragma warning restore 8625
 
 		// --assert
@@ -98,12 +89,6 @@ public class ConfigurationTest : StateMachineTestBase
 		target04.Should().ThrowExactly<ArgumentNullException>();
 		target05.Should().ThrowExactly<ArgumentNullException>();
 		target06.Should().ThrowExactly<ArgumentNullException>();
-		target07.Should().ThrowExactly<ArgumentNullException>();
-		target08.Should().ThrowExactly<ArgumentNullException>();
-		target09.Should().ThrowExactly<ArgumentNullException>();
-		target10.Should().ThrowExactly<ArgumentNullException>();
-		target11.Should().ThrowExactly<ArgumentNullException>();
-		target12.Should().ThrowExactly<ArgumentNullException>();
 	}
 
 	[Test]
@@ -136,26 +121,17 @@ public class ConfigurationTest : StateMachineTestBase
 		async void AsyncMethod1()                                   { }
 		async void AsyncMethod2(object                _)            { }
 		async void AsyncMethod3(object                _, object __) { }
-		async void AsyncMethod4(IStateController<string> _)                        { }
-		async void AsyncMethod5(IStateController<string> _, object __)             { }
-		async void AsyncMethod6(IStateController<string> _, object __, object ___) { }
 #pragma warning restore 1998
 
 		// --act
 		Action target1 = () => config.OnEnter(AsyncMethod1);
 		Action target2 = () => config.OnEnter<object>(AsyncMethod2);
 		Action target3 = () => config.OnEnter<object, object>(AsyncMethod3);
-		Action target4 = () => config.OnEnter(AsyncMethod4);
-		Action target5 = () => config.OnEnter<object>(AsyncMethod5);
-		Action target6 = () => config.OnEnter<object, object>(AsyncMethod6);
 
 		// --assert
 		target1.Should().ThrowExactly<ArgumentException>().WithMessage("'async void' methods are not supported, use Task return type for async method");
 		target2.Should().ThrowExactly<ArgumentException>().WithMessage("'async void' methods are not supported, use Task return type for async method");
 		target3.Should().ThrowExactly<ArgumentException>().WithMessage("'async void' methods are not supported, use Task return type for async method");
-		target4.Should().ThrowExactly<ArgumentException>().WithMessage("'async void' methods are not supported, use Task return type for async method");
-		target5.Should().ThrowExactly<ArgumentException>().WithMessage("'async void' methods are not supported, use Task return type for async method");
-		target6.Should().ThrowExactly<ArgumentException>().WithMessage("'async void' methods are not supported, use Task return type for async method");
 	}
 
 	[Test]

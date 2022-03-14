@@ -37,7 +37,7 @@ public partial class Example
 			builder
 			 .DefineState(States.Moving)
 			 .AsSubstateOf(States.Healthy)
-			 .OnEnter(CheckOverload)
+			 .OnRun(CheckOverload)
 			 .AddTransition(Events.Stop, States.OnFloor);
 
 			builder.DefineState(States.MovingUp).AsSubstateOf(States.Moving);
@@ -46,30 +46,30 @@ public partial class Example
 			builder.DefineState(States.DoorClosed).AsSubstateOf(States.OnFloor);
 			builder.DefineState(States.DoorOpen).AsSubstateOf(States.OnFloor);
 
-			_elevator = builder.Build(States.OnFloor);
+			_elevator = builder.Build(States.OnFloor).Result;
 
 			// ready to work
 		}
 
 		public void GoToUpperLevel()
 		{
-			_elevator.Raise(Events.CloseDoor);
-			_elevator.Raise(Events.GoUp);
-			_elevator.Raise(Events.OpenDoor);
+			_elevator.RaiseAsync(Events.CloseDoor);
+			_elevator.RaiseAsync(Events.GoUp);
+			_elevator.RaiseAsync(Events.OpenDoor);
 		}
 
 		public void GoToLowerLevel()
 		{
-			_elevator.Raise(Events.CloseDoor);
-			_elevator.Raise(Events.GoDown);
-			_elevator.Raise(Events.OpenDoor);
+			_elevator.RaiseAsync(Events.CloseDoor);
+			_elevator.RaiseAsync(Events.GoDown);
+			_elevator.RaiseAsync(Events.OpenDoor);
 		}
 
-		public void Error() => _elevator.Raise(Events.Error);
+		public void Error() => _elevator.RaiseAsync(Events.Error);
 
-		public void Stop() => _elevator.Raise(Events.Stop);
+		public void Stop() => _elevator.RaiseAsync(Events.Stop);
 
-		public void Reset() => _elevator.Raise(Events.Reset);
+		public void Reset() => _elevator.RaiseAsync(Events.Reset);
 
 		private void AnnounceFloor()
 		{

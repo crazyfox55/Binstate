@@ -10,7 +10,7 @@ namespace Binstate.Tests;
 public class MultiThreadingTest : StateMachineTestBase
 {
 	[Test]
-	public void eternal_async_enter_should_be_stopped_by_changing_state()
+	public async Task eternal_async_enter_should_be_stopped_by_changing_state()
 	{
 		const string enter = nameof(enter);
 		const string exit  = nameof(exit);
@@ -31,21 +31,20 @@ public class MultiThreadingTest : StateMachineTestBase
 		builder.DefineState(Initial).AddTransition(GoToStateX, StateX);
 
 		builder.DefineState(StateX)
-					 .OnEnter(BlockingEnter)
-					 .OnExit(() => actual.Add(exit))
-					 .AddTransition(GoToStateY, StateY);
+			.OnRun(BlockingEnter)
+			.OnExit(() => actual.Add(exit))
+			.AddTransition(GoToStateY, StateY);
 
-		builder
-		 .DefineState(StateY)
-		 .OnEnter(_ => actual.Add(StateY));
+		builder.DefineState(StateY)
+			.OnEnter(() => actual.Add(StateY));
 
-		var target = builder.Build(Initial);
+		var target = await builder.Build(Initial);
 
-		target.RaiseAsync(GoToStateX); // raise async to not to block test execution
+		await target.RaiseAsync(GoToStateX); // raise async to not to block test execution
 		entered.WaitOne(1000);         // wait till OnEnter will block execution
 
 		// --act
-		target.Raise(GoToStateY);
+		await target.RaiseAsync(GoToStateY);
 
 		// -- assert
 		actual.Should().Equal(enter, exit, StateY);
@@ -53,7 +52,7 @@ public class MultiThreadingTest : StateMachineTestBase
 
 	[TestCaseSource(nameof(RaiseWays))]
 	[Timeout(5000)]
-	public void async_enter_should_not_block(RaiseWay raiseWay)
+	public async Task async_enter_should_not_block(RaiseWay raiseWay)
 	{
 		// --arrange
 		var entered = new ManualResetEvent(false);
@@ -69,20 +68,20 @@ public class MultiThreadingTest : StateMachineTestBase
 
 		builder
 		 .DefineState(StateX)
-		 .OnEnter(AsyncEnter)
+		 .OnRun(AsyncEnter)
 		 .AddTransition(GoToStateY, StateY);
 
 		builder.DefineState(StateY);
 
-		var target = builder.Build(Initial);
+		var target = await builder.Build(Initial);
 
 		// --act
-		target.Raise(raiseWay, GoToStateX);
+		await target.RaiseAsync(raiseWay, GoToStateX);
 
 		// --assert
 		entered.WaitOne(TimeSpan.FromSeconds(4)).Should().BeTrue();
 
 		// --cleanup
-		target.Raise(GoToStateY); // exit async method
+		await target.RaiseAsync(GoToStateY); // exit async method
 	}
 }

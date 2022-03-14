@@ -26,16 +26,16 @@ public partial class Example
 			var builder = new Builder<string, string>(OnException);
 
 			builder
-			 .DefineState(WaitingForGame)
-			 .OnEnter(WaitForGame)
-			 .AddTransition(GameStarted, TrackingGame)
-			 .AddTransition(Terminate,   Terminated);
+				.DefineState(WaitingForGame)
+				.OnRun(WaitForGame)
+				.AddTransition(GameStarted, TrackingGame)
+				.AddTransition(Terminate,   Terminated);
 
 			builder
-			 .DefineState(TrackingGame)
-			 .OnEnter<string>(TrackGame)
-			 .AddTransition(GameFinished, WaitingForGame)
-			 .AddTransition(Terminate,    Terminated);
+				.DefineState(TrackingGame)
+				.OnRun<string>(TrackGame)
+				.AddTransition(GameFinished, WaitingForGame)
+				.AddTransition(Terminate,    Terminated);
 		}
 
 		private async Task WaitForGame(IStateController<string> stateController)
@@ -46,7 +46,7 @@ public partial class Example
 				var opponentName = GetOpponentName(result);
 
 				if(opponentName != null)
-					stateController.RaiseAsync(GameStarted, opponentName);
+					await stateController.RaiseAsync(GameStarted, opponentName);
 			}
 		}
 
@@ -58,7 +58,7 @@ public partial class Example
 
 				// track game
 				if(IsGameFinished())
-					stateController.RaiseAsync(GameFinished);
+					await stateController.RaiseAsync(GameFinished);
 			}
 		}
 

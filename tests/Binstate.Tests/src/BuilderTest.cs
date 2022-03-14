@@ -37,7 +37,7 @@ public class BuilderTest : StateMachineTestBase
 		builder.DefineState(Initial).AddTransition(GoToStateX, Child);
 
 		builder.DefineState(Parent)
-					 .OnEnter<int>((sm, value) => { });
+					 .OnEnter<int>(value => { });
 
 		builder.DefineState(Child)
 					 .AsSubstateOf(Parent)
@@ -62,7 +62,7 @@ public class BuilderTest : StateMachineTestBase
 		builder.DefineState(Initial).AddTransition(GoToStateX, Child);
 
 		builder.DefineState(Parent)
-					 .OnEnter<int>((sm, value) => { });
+					 .OnEnter<int>(value => { });
 
 		builder.DefineState(Child)
 					 .AsSubstateOf(Parent)

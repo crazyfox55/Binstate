@@ -42,7 +42,7 @@ public partial class Example
 
 		builder
 		 .DefineState(onHold)
-		 .OnEnter(PlayMusic)
+		 .OnRun(PlayMusic)
 		 .AddTransition(takenOffHold,           connected)
 		 .AddTransition(hungUp,                 offHook)
 		 .AddTransition(phoneHurledAgainstWall, phoneDestroyed);

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Binstate;
 
@@ -11,11 +13,13 @@ public static partial class Config<TState, TEvent>
 
 		public IStateFactory Factory       = new StateFactory();
 		public Maybe<TState> ParentStateId = Maybe<TState>.Nothing;
-		public object?       EnterAction;
-		public object?       ExitAction;
+		public object? EnterAction;
+		public object? RunAction;
+		public object? ExitAction;
 
 		public StateConfig(TState stateId) => StateId = stateId;
 
-		public IState<TState, TEvent> CreateState(IState<TState, TEvent>? parentState) => Factory.CreateState(this, parentState);
+		public IState<TState, TEvent> CreateState(IState<TState, TEvent>? parentState) =>
+			Factory.CreateState(this, parentState);
 	}
 }

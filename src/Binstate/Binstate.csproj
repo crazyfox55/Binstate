@@ -47,6 +47,9 @@
 		<Compile Update="src\Config.Enter.cs">
 			<DependentUpon>Config.cs</DependentUpon>
 		</Compile>
+		<Compile Update="src\Config.Run.cs">
+			<DependentUpon>Config.cs</DependentUpon>
+		</Compile>
 		<Compile Update="src\Config.Exit.cs">
 			<DependentUpon>Config.cs</DependentUpon>
 		</Compile>
@@ -81,6 +84,12 @@
 			<DependentUpon>Config.cs</DependentUpon>
 		</Compile>
 		<Compile Update="src\Config.Transitions`1.cs">
+			<DependentUpon>Config.cs</DependentUpon>
+		</Compile>
+		<Compile Update="src\Config.IRun.cs">
+			<DependentUpon>Config.cs</DependentUpon>
+		</Compile>
+		<Compile Update="src\Config.Run`1.cs">
 			<DependentUpon>Config.cs</DependentUpon>
 		</Compile>
 		<Compile Update="src\Config.IState.cs">

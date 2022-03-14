@@ -1,4 +1,7 @@
-﻿namespace Binstate;
+﻿using System;
+using System.Threading.Tasks;
+
+namespace Binstate;
 
 /// <summary>
 ///   This class provides syntax-sugar to configure the state machine.
@@ -21,8 +24,9 @@ public static partial class Config<TState, TEvent> where TState : notnull where 
 		public IState<TState, TEvent> CreateState(StateConfig stateConfig, IState<TState, TEvent>? parentState)
 			=> new State<TState, TEvent, Unit>(
 				stateConfig.StateId,
-				stateConfig.EnterAction,
-				stateConfig.ExitAction,
+				stateConfig.EnterAction as Func<Unit, Task>,
+				stateConfig.RunAction as Func<IStateController<TEvent>, Unit, Task>,
+				stateConfig.ExitAction as Func<Unit, Task>,
 				stateConfig.TransitionList,
 				parentState
 			);
@@ -33,8 +37,9 @@ public static partial class Config<TState, TEvent> where TState : notnull where 
 		public IState<TState, TEvent> CreateState(StateConfig stateConfig, IState<TState, TEvent>? parentState)
 			=> new State<TState, TEvent, TArgument>(
 				stateConfig.StateId,
-				stateConfig.EnterAction,
-				stateConfig.ExitAction,
+				stateConfig.EnterAction as Func<TArgument, Task>,
+				stateConfig.RunAction as Func<IStateController<TEvent>, TArgument, Task>,
+				stateConfig.ExitAction as Func<TArgument, Task>,
 				stateConfig.TransitionList,
 				parentState
 			);

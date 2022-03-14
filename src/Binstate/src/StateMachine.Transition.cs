@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Binstate;
 
@@ -76,7 +77,7 @@ internal partial class StateMachine<TState, TEvent>
 	///   Performs changes in the state machine state. Doesn't throw any exceptions, exceptions from the user code, 'enter' and 'exit' actions are translated
 	///   into the delegate passed to <see cref="Builder{TState,TEvent}(System.Action{System.Exception})" />
 	/// </summary>
-	private bool PerformTransition(TransitionData transitionData)
+	private async Task<bool> PerformTransitionAsync(TransitionData transitionData)
 	{
 		var currentActiveState = transitionData.CurrentActiveState;
 		var prevActiveState    = currentActiveState;
@@ -85,7 +86,7 @@ internal partial class StateMachine<TState, TEvent>
 		var commonAncestor     = transitionData.CommonAncestor;
 		var argumentsBag       = transitionData.ArgumentsBag;
 
-		var enterActions = new List<Action>();
+		//var enterActions = new List<Action>();
 
 		try
 		{
@@ -94,7 +95,7 @@ internal partial class StateMachine<TState, TEvent>
 				// exit all active states which are not parent for the new state
 				while(currentActiveState != commonAncestor)
 				{
-					currentActiveState!.ExitSafe(_onException); // currentActiveState can't become null earlier then be equal to commonAncestor
+					await currentActiveState!.ExitSafeAsync(_onException).ConfigureAwait(false); // currentActiveState can't become null earlier then be equal to commonAncestor
 					currentActiveState = currentActiveState.ParentState;
 				}
 
@@ -104,21 +105,31 @@ internal partial class StateMachine<TState, TEvent>
 				// and then activate new active states
 				_activeState = targetState;
 
+				var stack = new Stack<IState<TState, TEvent>>();
+
 				while(targetState != commonAncestor)
 				{
-					var enterAction = ActivateStateNotGuarded(targetState!, argumentsBag); // targetState can't become null earlier then be equal to commonAncestor
-					enterActions.Add(enterAction);
+					stack.Push(targetState!);
 					targetState = targetState!.ParentState;
 				}
+
+				while(stack.Count > 0)
+				{
+					var state = stack.Pop();
+					await ActivateState(state, argumentsBag).ConfigureAwait(false);
+				}
+
+				//while(targetState != commonAncestor)
+				//{
+				//	var enterAction = ActivateStateNotGuarded(targetState!, argumentsBag); // targetState can't become null earlier then be equal to commonAncestor
+				//	enterActions.Add(enterAction);
+				//	targetState = targetState!.ParentState;
+				//}
 			}
 			finally // no exception should be thrown here, but paranoia is my life
 			{
 				_lock.Set();
 			}
-
-			// call 'enter' actions out of the lock due to it can block execution
-
-			CallEnterActions(enterActions);
 		}
 		catch(Exception exception)
 		{
@@ -138,7 +149,7 @@ internal partial class StateMachine<TState, TEvent>
 	///   Doesn't acquire lock itself, caller should care about safe context
 	/// </summary>
 	/// <returns> Returns 'enter' action of the state </returns>
-	private Action ActivateStateNotGuarded(IState state, Argument.Bag argumentsBag)
+	private Action ActivateStateNotGuarded(IState<TState, TEvent> state, Argument.Bag argumentsBag)
 	{
 		state.IsActive = true; // set is as active inside the lock, see implementation of State class for details
 		var controller = new Controller(state, this);
@@ -150,8 +161,20 @@ internal partial class StateMachine<TState, TEvent>
 			setArgument?.Invoke();   // set the Argument property of the state if Argument is required
 
 			// set Argument property before calling EnterSafe, due to it uses this property
-			state.EnterSafe(controller, _onException);
+			state.EnterSafeAsync(controller, _onException);
 		};
+	}
+
+	private Task ActivateState(IState<TState, TEvent> state, Argument.Bag argumentsBag)
+	{
+		state.IsActive = true; // set is as active inside the lock, see implementation of State class for details
+		var controller = new Controller(state, this);
+
+		var setArgument = argumentsBag.GetValueSafe(state);
+		setArgument?.Invoke();   // set the Argument property of the state if Argument is required
+
+		// set Argument property before calling EnterSafe, due to it uses this property
+		return state.EnterSafeAsync(controller, _onException);
 	}
 
 	private readonly struct TransitionData
