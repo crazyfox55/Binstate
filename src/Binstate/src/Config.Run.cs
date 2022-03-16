@@ -29,8 +29,7 @@ public static partial class Config<TState, TEvent>
 			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
 			if(IsAsyncMethod(runAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
 
-			StateConfig.EnterAction = WrapAction(runAction);
-			return this;
+			return OnRun(WrapRunAction(runAction));
 		}
 
 		public IExit OnRun(Func<Task> runAction)
@@ -44,7 +43,7 @@ public static partial class Config<TState, TEvent>
 		{
 			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
 
-			StateConfig.EnterAction = WrapAction(runAction);
+			StateConfig.SetRunAction(runAction);
 			return this;
 		}
 
@@ -61,9 +60,7 @@ public static partial class Config<TState, TEvent>
 			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
 			if(IsAsyncMethod(runAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
 
-			StateConfig.EnterAction = WrapAction(runAction);
-			StateConfig.Factory = new StateFactory<TArgument>();
-			return new Exit<TArgument>(StateConfig);
+			return OnRun(WrapRunAction(runAction));
 		}
 
 		public IExit<TArgument> OnRun<TArgument>(Func<TArgument, Task> runAction)
@@ -77,7 +74,7 @@ public static partial class Config<TState, TEvent>
 		{
 			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
 
-			StateConfig.EnterAction = runAction;
+			StateConfig.SetRunAction(runAction);
 			StateConfig.Factory = new StateFactory<TArgument>();
 			return new Exit<TArgument>(StateConfig);
 		}
@@ -112,19 +109,10 @@ public static partial class Config<TState, TEvent>
 			return OnRun<ITuple<TArgument, TRelay>>((stateMachine, tuple) => runAction(stateMachine, tuple!.ItemX, tuple.ItemY));
 		}
 
-		private static Func<IStateController<TEvent>, Unit, Task> WrapAction(Action<IStateController<TEvent>> runAction) =>
-			(controller, _) =>
-			{
-				return Task.Run(() => runAction(controller));
-			};
+		private static Func<IStateController<TEvent>, Task> WrapRunAction(Action<IStateController<TEvent>> runAction) =>
+			controller => Task.Run(() => runAction(controller));
 
-		private static Func<IStateController<TEvent>, TArgument, Task> WrapAction<TArgument>(Action<IStateController<TEvent>, TArgument> runAction) =>
-			(controller, argument) =>
-			{
-				return Task.Run(() => runAction(controller, argument));
-			};
-
-		private static Func<IStateController<TEvent>, Unit, Task> WrapAction(Func<IStateController<TEvent>, Task> runAction) =>
-			(controller, argument) => runAction(controller);
+		private static Func<IStateController<TEvent>, TArgument, Task> WrapRunAction<TArgument>(Action<IStateController<TEvent>, TArgument> runAction) =>
+			(controller, argument) => Task.Run(() => runAction(controller, argument));
 	}
 }

@@ -22,7 +22,9 @@ public static partial class Config<TState, TEvent> where TState : notnull where 
 	private class StateFactory : IStateFactory
 	{
 		public IState<TState, TEvent> CreateState(StateConfig stateConfig, IState<TState, TEvent>? parentState)
-			=> new State<TState, TEvent, Unit>(
+		{
+			stateConfig.ActivateArgument<Unit>();
+			return new State<TState, TEvent, Unit>(
 				stateConfig.StateId,
 				stateConfig.EnterAction as Func<Unit, Task>,
 				stateConfig.RunAction as Func<IStateController<TEvent>, Unit, Task>,
@@ -30,12 +32,15 @@ public static partial class Config<TState, TEvent> where TState : notnull where 
 				stateConfig.TransitionList,
 				parentState
 			);
+		}
 	}
 
 	private class StateFactory<TArgument> : IStateFactory
 	{
 		public IState<TState, TEvent> CreateState(StateConfig stateConfig, IState<TState, TEvent>? parentState)
-			=> new State<TState, TEvent, TArgument>(
+		{
+			stateConfig.ActivateArgument<TArgument>();
+			return new State<TState, TEvent, TArgument>(
 				stateConfig.StateId,
 				stateConfig.EnterAction as Func<TArgument, Task>,
 				stateConfig.RunAction as Func<IStateController<TEvent>, TArgument, Task>,
@@ -43,5 +48,6 @@ public static partial class Config<TState, TEvent> where TState : notnull where 
 				stateConfig.TransitionList,
 				parentState
 			);
+		}
 	}
 }

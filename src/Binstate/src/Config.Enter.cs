@@ -19,15 +19,14 @@ public static partial class Config<TState, TEvent>
 			if(enterAction is null) throw new ArgumentNullException(nameof(enterAction));
 			if(IsAsyncMethod(enterAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
 
-			StateConfig.EnterAction = WrapAction(enterAction);
-			return this;
+			return OnEnter(WrapEnterAction(enterAction));
 		}
 
 		public IRun OnEnter(Func<Task> enterAction)
 		{
 			if(enterAction is null) throw new ArgumentNullException(nameof(enterAction));
 
-			StateConfig.EnterAction = (Unit _) => enterAction();
+			StateConfig.SetEnterAction(enterAction);
 			return this;
 		}
 
@@ -36,17 +35,15 @@ public static partial class Config<TState, TEvent>
 			if(enterAction is null) throw new ArgumentNullException(nameof(enterAction));
 			if(IsAsyncMethod(enterAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
 
-			StateConfig.EnterAction    = WrapAction(enterAction);
-			StateConfig.Factory = new StateFactory<TArgument>();
-			return new Run<TArgument>(StateConfig);
+			return OnEnter(WrapEnterAction(enterAction));
 		}
 
 		public IRun<TArgument> OnEnter<TArgument>(Func<TArgument, Task> enterAction)
 		{
 			if(enterAction is null) throw new ArgumentNullException(nameof(enterAction));
 
-			StateConfig.EnterAction = enterAction;
-			StateConfig.Factory     = new StateFactory<TArgument>();
+			StateConfig.SetEnterAction(enterAction);
+			StateConfig.Factory = new StateFactory<TArgument>();
 			return new Run<TArgument>(StateConfig);
 		}
 
@@ -65,16 +62,10 @@ public static partial class Config<TState, TEvent>
 			return OnEnter<ITuple<TArgument, TRelay>>((tuple) => enterAction(tuple!.ItemX, tuple.ItemY));
 		}
 
-		private static Func<Unit, Task> WrapAction(Action enterAction)
-			=> (argument) =>
-			{
-				return Task.Run(() => enterAction());
-			};
+		private static Func<Task> WrapEnterAction(Action enterAction)
+			=> () => Task.Run(enterAction);
 
-		private static Func<TArgument, Task> WrapAction<TArgument>(Action<TArgument> enterAction)
-			=> (argument) =>
-			{
-				return Task.Run(() => enterAction(argument));
-			};
+		private static Func<TArgument, Task> WrapEnterAction<TArgument>(Action<TArgument> enterAction)
+			=> (argument) => Task.Run(() => enterAction(argument));
 	}
 }

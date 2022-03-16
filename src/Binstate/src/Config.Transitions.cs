@@ -9,7 +9,8 @@ public static partial class Config<TState, TEvent>
 	{
 		public readonly StateConfig StateConfig;
 
-		protected Transitions(StateConfig stateConfig) => StateConfig = stateConfig;
+		protected Transitions(StateConfig stateConfig) =>
+			StateConfig = stateConfig;
 
 		/// <summary>
 		///   Defines transition from the currently configured state to the <paramref name="stateId"> specified state </paramref> when <paramref name="event"> event is raised </paramref>
