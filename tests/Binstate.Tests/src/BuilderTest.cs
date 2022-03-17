@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -9,7 +10,7 @@ namespace Binstate.Tests;
 public class BuilderTest : StateMachineTestBase
 {
 	[Test]
-	public void should_throw_exception_if_transition_refers_not_defined_state()
+	public Task should_throw_exception_if_transition_refers_not_defined_state()
 	{
 		const string wrongState = "null_state";
 
@@ -20,16 +21,16 @@ public class BuilderTest : StateMachineTestBase
 		 .AddTransition(GoToStateX, wrongState);
 
 		// --act
-		Action target = () => builder.Build(Initial);
+		Func<Task> target = () => builder.Build(Initial);
 
 		// --assert
-		target.Should()
-					.ThrowExactly<InvalidOperationException>()
-					.WithMessage($"The transition '{GoToStateX}' from the state '{Initial}' references not defined state '{wrongState}'");
+		return target.Should()
+			.ThrowExactlyAsync<InvalidOperationException>()
+			.WithMessage($"The transition '{GoToStateX}' from the state '{Initial}' references not defined state '{wrongState}'");
 	}
 
 	[Test]
-	public void should_throw_exception_if_parent_and_child_states_have_not_compatible_enter_arguments_and_enable_loose_relaying_is_false()
+	public Task should_throw_exception_if_parent_and_child_states_have_not_compatible_enter_arguments_and_enable_loose_relaying_is_false()
 	{
 		// --arrange
 		var builder = new Builder<string, int>(OnException);
@@ -44,13 +45,12 @@ public class BuilderTest : StateMachineTestBase
 					 .OnEnter<string>(value => { });
 
 		// --act
-		Action target = () => builder.Build(Initial);
+		Func<Task> target = () => builder.Build(Initial);
 
 		// --assert
-		target
-		 .Should()
-		 .Throw<InvalidOperationException>()
-		 .WithMessage( $"Parent state '{Parent}' requires argument of type '{typeof(int)}' whereas it's child state '{Child}'*");
+		return target.Should()
+			.ThrowAsync<InvalidOperationException>()
+			.WithMessage( $"Parent state '{Parent}' requires argument of type '{typeof(int)}' whereas it's child state '{Child}'*");
 	}
 
 	[Test]

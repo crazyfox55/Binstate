@@ -45,7 +45,7 @@ public class BoxingTest : StateMachineTestBase
 
 		var target = await builder.Build(Initial, ArgumentTransferMode.Free);
 
-		var startPoint = dotMemory.Check();
+		//var startPoint = dotMemory.Check();
 
 		// --act
 		await target.RaiseAsync(raiseWay, GoToStateX, expected1); // pass to State1
@@ -53,14 +53,14 @@ public class BoxingTest : StateMachineTestBase
 		await target.RaiseAsync(raiseWay, GoToStateY, expected2); // pass everywhere
 
 		// --assert
-		dotMemory.Check(
-			memory =>
-				memory.GetTrafficFrom(startPoint)
-							.Where(_ => _.Type.Is<ValueType1>() | _.Type.Is<ValueType2>())
-							.AllocatedMemory.ObjectsCount
-							.Should()
-							.Be(0)
-		);
+		//dotMemory.Check(
+		//	memory =>
+		//		memory.GetTrafficFrom(startPoint)
+		//					.Where(_ => _.Type.Is<ValueType1>() | _.Type.Is<ValueType2>())
+		//					.AllocatedMemory.ObjectsCount
+		//					.Should()
+		//					.Be(0)
+		//);
 
 		// dont' use actual.Should().Be(expected); due to this method leads boxing
 		actual1.Value.Should().Be(expected1.Value);

@@ -101,12 +101,12 @@ public class ArgumentPassingTest : StateMachineTestBase
 		var stateMachine = await builder.Build(Initial);
 
 		// --act
-		Func<Task> target = async () => await stateMachine.RaiseAsync(raiseWay, GoToStateX, 983);
+		Func<Task> target = () => stateMachine.RaiseAsync(raiseWay, GoToStateX, 983);
 
 		// --assert
 		await target.Should()
-					.ThrowExactlyAsync<TransitionException>()
-					.WithMessage($"The state '{StateX}' requires argument of type '{typeof(string)}' but no argument*");
+			.ThrowExactlyAsync<TransitionException>()
+			.WithMessage($"The state '{StateX}' requires argument of type '{typeof(string)}' but no argument*");
 	}
 
 	[TestCaseSource(nameof(RaiseWays))]
@@ -126,11 +126,10 @@ public class ArgumentPassingTest : StateMachineTestBase
 		var stateMachine = await builder.Build(Initial);
 
 		// --act
-		Func<Task> target = async () => await stateMachine.RaiseAsync(raiseWay, GoToStateX);
+		Func<Task> target = () => stateMachine.RaiseAsync(raiseWay, GoToStateX);
 
 		// --assert
-		await target
-			.Should()
+		await target.Should()
 			.ThrowExactlyAsync<TransitionException>()
 			.WithMessage($"The state '{StateX}' requires argument of type '{typeof(int)}' but no argument*");
 	}
@@ -153,11 +152,10 @@ public class ArgumentPassingTest : StateMachineTestBase
 		// --act
 		var sm = await builder.Build(Initial, ArgumentTransferMode.Free);
 
-		Func<Task> target = async () => await sm.RaiseAsync(GoToStateX, "stringArgument");
+		Func<Task> target = () => sm.RaiseAsync(GoToStateX, "stringArgument");
 
 		// --assert
-		await target
-			.Should()
+		await target.Should()
 			.ThrowAsync<TransitionException>()
 			.WithMessage($"The state '{Parent}' requires argument of type '{typeof(int)}' but no argument*");
 	}

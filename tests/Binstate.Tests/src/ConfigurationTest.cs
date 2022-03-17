@@ -49,17 +49,19 @@ public class ConfigurationTest : StateMachineTestBase
 	}
 
 	[Test]
-	public void should_throw_exception_if_pass_null_initial_state_id()
+	public Task should_throw_exception_if_pass_null_initial_state_id()
 	{
 		// --arrange
 		var builder = new Builder<string, int>(OnException);
 		builder.DefineState(Initial).AllowReentrancy(GoToStateX);
 
 		// --act
-		Action target = () => builder.Build(null!);
+		Func<Task> target = () => builder.Build(null!);
 
 		// --assert
-		target.Should().ThrowExactly<ArgumentNullException>().WithMessage("*initialStateId*");
+		return target.Should()
+			.ThrowExactlyAsync<ArgumentNullException>()
+			.WithMessage("*initialStateId*");
 	}
 
 	[Test]

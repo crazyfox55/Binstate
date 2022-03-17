@@ -75,7 +75,7 @@ public class InitialStateTest : StateMachineTestBase
 	}
 
 	[Test]
-	public void should_throw_exception_if_initial_state_is_not_defined()
+	public Task should_throw_exception_if_initial_state_is_not_defined()
 	{
 		const string wrongState = "Wrong";
 
@@ -85,14 +85,16 @@ public class InitialStateTest : StateMachineTestBase
 		builder.DefineState(Initial);
 
 		// --act
-		Action target = () => builder.Build(wrongState);
+		Func<Task> target = () => builder.Build(wrongState);
 
 		// --assert
-		target.Should().ThrowExactly<ArgumentException>().WithMessage($"No state '{wrongState}' is defined");
+		return target.Should()
+			.ThrowExactlyAsync<ArgumentException>()
+			.WithMessage($"No state '{wrongState}' is defined");
 	}
 
 	[Test]
-	public void should_throw_exception_if_initial_state_has_no_transition()
+	public Task should_throw_exception_if_initial_state_has_no_transition()
 	{
 		// --arrange
 		var builder = new Builder<string, int>(OnException);
@@ -100,10 +102,12 @@ public class InitialStateTest : StateMachineTestBase
 		builder.DefineState(Initial);
 
 		// --act
-		Action target = () => builder.Build(Initial);
+		Func<Task> target = () => builder.Build(Initial);
 
 		// --assert
-		target.Should().ThrowExactly<ArgumentException>().WithMessage("No transitions defined from the initial state*");
+		return target.Should()
+			.ThrowExactlyAsync<ArgumentException>()
+			.WithMessage("No transitions defined from the initial state*");
 	}
 
 	[Test]
@@ -127,7 +131,7 @@ public class InitialStateTest : StateMachineTestBase
 	}
 
 	[Test]
-	public void should_throw_exception_if_initial_state_requires_argument_but_no_argument_is_specified()
+	public Task should_throw_exception_if_initial_state_requires_argument_but_no_argument_is_specified()
 	{
 		// --arrange
 		var builder = new Builder<string, int>(_ => { });
@@ -135,16 +139,16 @@ public class InitialStateTest : StateMachineTestBase
 		builder.DefineState(Initial).OnEnter<string>(_ => { }).AllowReentrancy(GoToStateX);
 
 		// --act
-		Action target = () => builder.Build(Initial);
+		Func<Task> target = () => builder.Build(Initial);
 
 		// --assert
-		target.Should()
-					.ThrowExactly<TransitionException>()
-					.WithMessage("The state*");
+		return target.Should()
+			.ThrowExactlyAsync<TransitionException>()
+			.WithMessage("The state*");
 	}
 
 	[Test]
-	public void should_throw_exception_if_parent_of_initial_state_requires_argument_but_no_argument_is_specified()
+	public Task should_throw_exception_if_parent_of_initial_state_requires_argument_but_no_argument_is_specified()
 	{
 		// --arrange
 		var builder = new Builder<string, int>(_ => { });
@@ -153,11 +157,11 @@ public class InitialStateTest : StateMachineTestBase
 		builder.DefineState(Initial).AsSubstateOf(Parent);
 
 		// --act
-		Action target = () => builder.Build(Initial);
+		Func<Task> target = () => builder.Build(Initial);
 
 		// --assert
-		target.Should()
-					.ThrowExactly<TransitionException>()
-					.WithMessage("The state*");
+		return target.Should()
+			.ThrowExactlyAsync<TransitionException>()
+			.WithMessage("The state*");
 	}
 }
