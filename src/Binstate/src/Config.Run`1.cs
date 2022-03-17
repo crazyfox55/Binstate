@@ -77,11 +77,5 @@ public static partial class Config<TState, TEvent>
 			StateConfig.SetRunAction(runAction);
 			return this;
 		}
-
-		private static Func<IStateController<TEvent>, Task> WrapRunAction(Action<IStateController<TEvent>> runAction) =>
-			controller => Task.Run(() => runAction(controller));
-
-		private static Func<IStateController<TEvent>, T, Task> WrapRunAction(Action<IStateController<TEvent>, T> runAction) =>
-			(controller, argument) => Task.Run(() => runAction(controller, argument));
 	}
 }

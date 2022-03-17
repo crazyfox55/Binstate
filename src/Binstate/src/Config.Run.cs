@@ -108,11 +108,5 @@ public static partial class Config<TState, TEvent>
 
 			return OnRun<ITuple<TArgument, TRelay>>((stateMachine, tuple) => runAction(stateMachine, tuple!.ItemX, tuple.ItemY));
 		}
-
-		private static Func<IStateController<TEvent>, Task> WrapRunAction(Action<IStateController<TEvent>> runAction) =>
-			controller => Task.Run(() => runAction(controller));
-
-		private static Func<IStateController<TEvent>, TArgument, Task> WrapRunAction<TArgument>(Action<IStateController<TEvent>, TArgument> runAction) =>
-			(controller, argument) => Task.Run(() => runAction(controller, argument));
 	}
 }

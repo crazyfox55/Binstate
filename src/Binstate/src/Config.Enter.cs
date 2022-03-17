@@ -19,7 +19,7 @@ public static partial class Config<TState, TEvent>
 			if(enterAction is null) throw new ArgumentNullException(nameof(enterAction));
 			if(IsAsyncMethod(enterAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
 
-			return OnEnter(WrapEnterAction(enterAction));
+			return OnEnter(WrapEnterExitAction(enterAction));
 		}
 
 		public IRun OnEnter(Func<Task> enterAction)
@@ -35,7 +35,7 @@ public static partial class Config<TState, TEvent>
 			if(enterAction is null) throw new ArgumentNullException(nameof(enterAction));
 			if(IsAsyncMethod(enterAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
 
-			return OnEnter(WrapEnterAction(enterAction));
+			return OnEnter(WrapEnterExitAction(enterAction));
 		}
 
 		public IRun<TArgument> OnEnter<TArgument>(Func<TArgument, Task> enterAction)
@@ -61,11 +61,5 @@ public static partial class Config<TState, TEvent>
 
 			return OnEnter<ITuple<TArgument, TRelay>>((tuple) => enterAction(tuple!.ItemX, tuple.ItemY));
 		}
-
-		private static Func<Task> WrapEnterAction(Action enterAction)
-			=> () => Task.Run(enterAction);
-
-		private static Func<TArgument, Task> WrapEnterAction<TArgument>(Action<TArgument> enterAction)
-			=> (argument) => Task.Run(() => enterAction(argument));
 	}
 }

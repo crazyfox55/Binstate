@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Binstate;
 
@@ -75,5 +76,17 @@ public static partial class Config<TState, TEvent>
 
 		protected void AddTransitionToList(TEvent @event, GetState<TState> getState, bool isStatic, object? action)
 			=> StateConfig.TransitionList.Add(@event, new Transition<TState, TEvent>(@event, getState, isStatic, action));
+
+		protected static Func<Task> WrapEnterExitAction(Action enterAction)
+			=> () => Task.Run(enterAction);
+
+		protected static Func<TArgument, Task> WrapEnterExitAction<TArgument>(Action<TArgument> enterAction)
+			=> (argument) => Task.Run(() => enterAction(argument));
+
+		protected static Func<IStateController<TEvent>, Task> WrapRunAction(Action<IStateController<TEvent>> runAction) =>
+			controller => Task.Run(() => runAction(controller));
+
+		protected static Func<IStateController<TEvent>, TArgument, Task> WrapRunAction<TArgument>(Action<IStateController<TEvent>, TArgument> runAction) =>
+			(controller, argument) => Task.Run(() => runAction(controller, argument));
 	}
 }
