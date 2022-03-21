@@ -13,86 +13,94 @@ public partial class Example
 		private readonly IStateMachine<Events> _elevator;
 
 		public int FloorNumber { get; private set; } = 0;
-		public bool MovingUp { get; private set; } = false;
-		public bool MovingDown { get; private set; } = false;
+		public bool DoorsOpen { get; private set; } = false;
 
 		public Elevator()
 		{
 			var builder = new Builder<States, Events>(Console.WriteLine);
 
-			builder
-			 .DefineState(States.Healthy)
-			 .AddTransition(Events.Error, States.Error);
+			builder.DefineState(States.Healthy)
+				.AddTransition(Events.Error, States.Error);
 
-			builder
-			 .DefineState(States.Error)
-			 .AddTransition(Events.Reset, States.Healthy)
-			 .AllowReentrancy(Events.Error);
-
-			builder
-			 .DefineState(States.OnFloor)
-			 .AsSubstateOf(States.Healthy)
-			 .OnEnter(AnnounceFloor)
-			 .OnExit(() => Beep(2))
-			 .AddTransition(Events.CloseDoor, States.DoorClosed)
-			 .AddTransition(Events.OpenDoor, States.DoorOpen);
-
-			builder
-			 .DefineState(States.Moving)
-			 .AsSubstateOf(States.Healthy)
-			 .OnRun(CheckOverload)
-			 .AddTransition(Events.Stop, States.OnFloor);
-
-			builder.DefineState(States.MovingUp).AsSubstateOf(States.Moving)
-				.OnEnter(() => MovingUp = true)
-				.OnRun<int>(async (_, floor) =>
+			builder.DefineState(States.Error)
+				.AddTransition(Events.Reset, (out States state) =>
 				{
-					while(floor != FloorNumber)
+					if(DoorsOpen)
 					{
-						FloorNumber++;
-						await Task.Delay(100);
+						if (FloorNumber == 0)
+						{
+							state = States.Level1Open;
+						}
+						else
+						{
+							state = States.Level2Open;
+						}
 					}
-				})
-				.OnExit(() => MovingUp = false);
-			builder.DefineState(States.MovingDown).AsSubstateOf(States.Moving)
-				.OnEnter(() => MovingDown = true)
-				.OnRun<int>(async (sc, floor) =>
-				{
-					while(floor != FloorNumber)
+					else
 					{
-						FloorNumber--;
-						await Task.Delay(100);
+						if(FloorNumber == 0)
+						{
+							state = States.Level1Closed;
+						}
+						else
+						{
+							state = States.Level2Closed;
+						}
 					}
-
-					await sc.RaiseAsync(Events.Stop);
+					return true;
 				})
-				.OnExit(() => MovingDown = false);
+				.AllowReentrancy(Events.Error);
 
-			builder.DefineState(States.DoorClosed).AsSubstateOf(States.OnFloor)
-				.AddTransition(Events.GoUp, States.MovingUp)
-				.AddTransition(Events.GoDown, States.MovingDown);
+			builder.DefineState(States.Open)
+				.AsSubstateOf(States.Healthy)
+				.OnEnter(() => DoorsOpen = true);
+			builder.DefineState(States.Closed)
+				.AsSubstateOf(States.Healthy)
+				.OnEnter(() => DoorsOpen = false);
 
-			builder.DefineState(States.DoorOpen).AsSubstateOf(States.OnFloor);
+			builder.DefineState(States.Level1Open)
+				.AsSubstateOf(States.Open)
+				.OnEnter(() => AnnounceFloor(0))
+				.OnExit(() => Beep(2))
+				.AddTransition(Events.GoUp, States.Level1Closed);
 
-			_elevator = builder.Build(States.OnFloor).Result;
+			builder.DefineState(States.Level2Open)
+				.AsSubstateOf(States.Open)
+				.OnEnter(() => AnnounceFloor(1))
+				.OnExit(() => Beep(2))
+				.AddTransition(Events.GoDown, States.Level2Closed);
+
+			builder.DefineState(States.Level1Closed)
+				.AsSubstateOf(States.Closed)
+				.OnEnter(() => AnnounceFloor(0))
+				.OnExit(() => Beep(2))
+				.AddTransition(Events.Stop, States.Level1Open)
+				.AddTransition(Events.GoUp, States.Level2Closed);
+
+			builder.DefineState(States.Level2Closed)
+				.AsSubstateOf(States.Closed)
+				.OnEnter(() => AnnounceFloor(1))
+				.OnExit(() => Beep(2))
+				.AddTransition(Events.Stop, States.Level2Open)
+				.AddTransition(Events.GoDown, States.Level1Closed);
+
+			_elevator = builder.Build(States.Level1Closed).Result;
 
 			// ready to work
 		}
 
-		public async Task CallFloor(int floorNumber)
+		public async Task GoTopFloor()
 		{
+			await _elevator.RaiseAsync(Events.GoUp);
+			await _elevator.RaiseAsync(Events.GoUp);
 			await _elevator.RaiseAsync(Events.Stop);
-			await _elevator.RaiseAsync(Events.CloseDoor);
-			if(floorNumber > FloorNumber)
-			{
-				await _elevator.RaiseAsync(Events.GoUp, floorNumber);
-			}
-			else
-			{
-				await _elevator.RaiseAsync(Events.GoDown, floorNumber);
-			}
+		}
+
+		public async Task GoBottomFloor()
+		{
+			await _elevator.RaiseAsync(Events.GoDown);
+			await _elevator.RaiseAsync(Events.GoDown);
 			await _elevator.RaiseAsync(Events.Stop);
-			await _elevator.RaiseAsync(Events.OpenDoor);
 		}
 
 		public Task Error() => _elevator.RaiseAsync(Events.Error);
@@ -101,9 +109,10 @@ public partial class Example
 
 		public Task Reset() => _elevator.RaiseAsync(Events.Reset);
 
-		private void AnnounceFloor()
+		private void AnnounceFloor(int floor)
 		{
 			/* announce floor number */
+			FloorNumber = floor;
 		}
 
 		private void AnnounceOverload()
@@ -134,8 +143,8 @@ public partial class Example
 
 		private bool IsOverloaded() => false;
 
-		private enum States { None, Healthy, OnFloor, Moving, MovingUp, MovingDown, DoorOpen, DoorClosed, Error, }
+		private enum States { None, Healthy, Open, Closed, Level1Open, Level1Closed, Level2Open, Level2Closed, Error, }
 
-		private enum Events { GoUp, GoDown, OpenDoor, CloseDoor, Stop, Error, Reset, }
+		private enum Events { GoUp, GoDown, Stop, Error, Reset, }
 	}
 }
