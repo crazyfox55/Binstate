@@ -9,14 +9,14 @@ public static partial class Config<TState, TEvent>
 	{
 		protected Exit(StateConfig stateConfig) : base(stateConfig) { }
 
-		public ITransitionsEx OnExit(Action exitAction)
+		public ITransitions OnExit(Action exitAction)
 		{
 			if (exitAction == null) throw new ArgumentNullException(nameof(exitAction));
 
 			return OnExit(WrapEnterExitAction(exitAction));
 		}
 
-		public ITransitionsEx OnExit(Func<Task> exitAction)
+		public ITransitions OnExit(Func<Task> exitAction)
 		{
 			if(exitAction == null) throw new ArgumentNullException(nameof(exitAction));
 
@@ -26,18 +26,14 @@ public static partial class Config<TState, TEvent>
 
 		public ITransitions<T> OnExit<T>(Action<T> exitAction)
 		{
-			if(exitAction == null) throw new ArgumentNullException(nameof(exitAction));
-
-			return OnExit<T>(WrapEnterExitAction(exitAction));
+			StateConfig.Factory = new StateFactory<T>();
+			return new Exit<T>(this).OnExit(exitAction);
 		}
 
 		public ITransitions<T> OnExit<T>(Func<T, Task> exitAction)
 		{
-			if(exitAction == null) throw new ArgumentNullException(nameof(exitAction));
-
-			StateConfig.SetExitAction(exitAction);
 			StateConfig.Factory = new StateFactory<T>();
-			return new Transitions<T>(StateConfig);
+			return new Exit<T>(this).OnExit(exitAction);
 		}
 	}
 }

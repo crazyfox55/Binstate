@@ -9,10 +9,6 @@ internal interface IState : IArgumentProvider
 	IState? ParentState { get; }
 	int     DepthInTree { get; }
 
-	/// <summary>
-	///   This property is set from protected by lock part of the code so it's no need synchronization
-	///   see <see cref="StateMachine{TState,TEvent}.ActivateStateNotGuarded" /> implementation for details.
-	/// </summary>
 	bool IsActive { get; set; }
 
 	/// <summary>

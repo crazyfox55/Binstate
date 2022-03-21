@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace Binstate.Tests;
 
@@ -10,6 +11,10 @@ public partial class Example
 	public class Elevator
 	{
 		private readonly IStateMachine<Events> _elevator;
+
+		public int FloorNumber { get; private set; } = 0;
+		public bool MovingUp { get; private set; } = false;
+		public bool MovingDown { get; private set; } = false;
 
 		public Elevator()
 		{
@@ -30,9 +35,7 @@ public partial class Example
 			 .OnEnter(AnnounceFloor)
 			 .OnExit(() => Beep(2))
 			 .AddTransition(Events.CloseDoor, States.DoorClosed)
-			 .AddTransition(Events.OpenDoor,  States.DoorOpen)
-			 .AddTransition(Events.GoUp,      States.MovingUp)
-			 .AddTransition(Events.GoDown,    States.MovingDown);
+			 .AddTransition(Events.OpenDoor, States.DoorOpen);
 
 			builder
 			 .DefineState(States.Moving)
@@ -40,10 +43,35 @@ public partial class Example
 			 .OnRun(CheckOverload)
 			 .AddTransition(Events.Stop, States.OnFloor);
 
-			builder.DefineState(States.MovingUp).AsSubstateOf(States.Moving);
-			builder.DefineState(States.MovingDown).AsSubstateOf(States.Moving);
+			builder.DefineState(States.MovingUp).AsSubstateOf(States.Moving)
+				.OnEnter(() => MovingUp = true)
+				.OnRun<int>(async (_, floor) =>
+				{
+					while(floor != FloorNumber)
+					{
+						FloorNumber++;
+						await Task.Delay(100);
+					}
+				})
+				.OnExit(() => MovingUp = false);
+			builder.DefineState(States.MovingDown).AsSubstateOf(States.Moving)
+				.OnEnter(() => MovingDown = true)
+				.OnRun<int>(async (sc, floor) =>
+				{
+					while(floor != FloorNumber)
+					{
+						FloorNumber--;
+						await Task.Delay(100);
+					}
 
-			builder.DefineState(States.DoorClosed).AsSubstateOf(States.OnFloor);
+					await sc.RaiseAsync(Events.Stop);
+				})
+				.OnExit(() => MovingDown = false);
+
+			builder.DefineState(States.DoorClosed).AsSubstateOf(States.OnFloor)
+				.AddTransition(Events.GoUp, States.MovingUp)
+				.AddTransition(Events.GoDown, States.MovingDown);
+
 			builder.DefineState(States.DoorOpen).AsSubstateOf(States.OnFloor);
 
 			_elevator = builder.Build(States.OnFloor).Result;
@@ -51,25 +79,27 @@ public partial class Example
 			// ready to work
 		}
 
-		public void GoToUpperLevel()
+		public async Task CallFloor(int floorNumber)
 		{
-			_elevator.RaiseAsync(Events.CloseDoor);
-			_elevator.RaiseAsync(Events.GoUp);
-			_elevator.RaiseAsync(Events.OpenDoor);
+			await _elevator.RaiseAsync(Events.Stop);
+			await _elevator.RaiseAsync(Events.CloseDoor);
+			if(floorNumber > FloorNumber)
+			{
+				await _elevator.RaiseAsync(Events.GoUp, floorNumber);
+			}
+			else
+			{
+				await _elevator.RaiseAsync(Events.GoDown, floorNumber);
+			}
+			await _elevator.RaiseAsync(Events.Stop);
+			await _elevator.RaiseAsync(Events.OpenDoor);
 		}
 
-		public void GoToLowerLevel()
-		{
-			_elevator.RaiseAsync(Events.CloseDoor);
-			_elevator.RaiseAsync(Events.GoDown);
-			_elevator.RaiseAsync(Events.OpenDoor);
-		}
+		public Task Error() => _elevator.RaiseAsync(Events.Error);
 
-		public void Error() => _elevator.RaiseAsync(Events.Error);
+		public Task Stop() => _elevator.RaiseAsync(Events.Stop);
 
-		public void Stop() => _elevator.RaiseAsync(Events.Stop);
-
-		public void Reset() => _elevator.RaiseAsync(Events.Reset);
+		public Task Reset() => _elevator.RaiseAsync(Events.Reset);
 
 		private void AnnounceFloor()
 		{
@@ -86,12 +116,19 @@ public partial class Example
 			/* beep */
 		}
 
-		private void CheckOverload(IStateController<Events> stateController)
+		private async Task CheckOverload(IStateController<Events> stateController)
 		{
-			if(IsOverloaded())
+			while(stateController.InMyState)
 			{
-				AnnounceOverload();
-				stateController.RaiseAsync(Events.Stop);
+				if(IsOverloaded())
+				{
+					AnnounceOverload();
+					await stateController.RaiseAsync(Events.Stop);
+				}
+				else
+				{
+					await Task.Delay(300);
+				}
 			}
 		}
 

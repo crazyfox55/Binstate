@@ -24,7 +24,7 @@ public class EnterExitActionsTest : StateMachineTestBase
 		builder.DefineState(Initial).AddTransition(GoToStateX, StateX);
 
 		builder.DefineState(StateX)
-			.OnRun(_ =>
+			.OnEnter(() =>
 				{
 					Thread.Sleep(299);
 					actual.Add(enter1);

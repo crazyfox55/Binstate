@@ -30,7 +30,7 @@ internal partial class StateMachine<TState, TEvent>
 				return null;
 			}
 
-			var targetState = GetStateById(stateId);
+			var targetState = GetStateById(stateId!);
 
 			var commonAncestor = FindLeastCommonAncestor(targetState, _activeState);
 			var argumentsBag   = PrepareArgument(argument, argumentIsFallback, targetState, commonAncestor, _activeState);
@@ -86,8 +86,6 @@ internal partial class StateMachine<TState, TEvent>
 		var commonAncestor     = transitionData.CommonAncestor;
 		var argumentsBag       = transitionData.ArgumentsBag;
 
-		//var enterActions = new List<Action>();
-
 		try
 		{
 			try
@@ -118,13 +116,6 @@ internal partial class StateMachine<TState, TEvent>
 					var state = stack.Pop();
 					await ActivateState(state, argumentsBag).ConfigureAwait(false);
 				}
-
-				//while(targetState != commonAncestor)
-				//{
-				//	var enterAction = ActivateStateNotGuarded(targetState!, argumentsBag); // targetState can't become null earlier then be equal to commonAncestor
-				//	enterActions.Add(enterAction);
-				//	targetState = targetState!.ParentState;
-				//}
 			}
 			finally // no exception should be thrown here, but paranoia is my life
 			{
@@ -137,32 +128,6 @@ internal partial class StateMachine<TState, TEvent>
 		}
 
 		return true; // just to reduce amount of code calling this method
-	}
-
-	private static void CallEnterActions(List<Action> enterActions)
-	{ // call them in reverse order, parent's 'enter' is called first, child's one last
-		for(var i = enterActions.Count - 1; i >= 0; i--)
-			enterActions[i]();
-	}
-
-	/// <summary>
-	///   Doesn't acquire lock itself, caller should care about safe context
-	/// </summary>
-	/// <returns> Returns 'enter' action of the state </returns>
-	private Action ActivateStateNotGuarded(IState<TState, TEvent> state, Argument.Bag argumentsBag)
-	{
-		state.IsActive = true; // set is as active inside the lock, see implementation of State class for details
-		var controller = new Controller(state, this);
-
-		// prepare 'enter' action - will be called later
-		return () =>
-		{
-			var setArgument = argumentsBag.GetValueSafe(state);
-			setArgument?.Invoke();   // set the Argument property of the state if Argument is required
-
-			// set Argument property before calling EnterSafe, due to it uses this property
-			state.EnterSafeAsync(controller, _onException);
-		};
 	}
 
 	private Task ActivateState(IState<TState, TEvent> state, Argument.Bag argumentsBag)

@@ -165,7 +165,7 @@ public class Builder<TState, TEvent> where TState : notnull where TEvent : notnu
 			if(!transition.GetTargetStateId(out var targetStateId))
 				Throw.ImpossibleException();
 
-			if(! states.ContainsKey(targetStateId))
+			if(! states.ContainsKey(targetStateId!))
 				throw new InvalidOperationException(
 					$"The transition '{transition.Event}' from the state '{stateConfig.StateId}' references not defined state '{targetStateId}'"
 				);

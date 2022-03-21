@@ -153,8 +153,6 @@ public class ConfigurationTest : StateMachineTestBase
 #pragma warning disable 8625
 		Action target1 = () => config.AddTransition(null,    Initial);
 		Action target2 = () => config.AddTransition(Initial, null, null!);
-		Action target3 = () => config.AddTransition(null,    () => "func");
-		Action target4 = () => config.AddTransition(Initial, (Func<string>)null!);
 #pragma warning disable CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
 		Action target5 = () => config.AddTransition(null,    (out string? s) => GetState(out s));
 #pragma warning restore CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
@@ -164,8 +162,6 @@ public class ConfigurationTest : StateMachineTestBase
 		// --assert
 		target1.Should().ThrowExactly<ArgumentNullException>();
 		target2.Should().ThrowExactly<ArgumentNullException>();
-		target3.Should().ThrowExactly<ArgumentNullException>();
-		target4.Should().ThrowExactly<ArgumentNullException>();
 		target5.Should().ThrowExactly<ArgumentNullException>();
 		target6.Should().ThrowExactly<ArgumentNullException>();
 	}

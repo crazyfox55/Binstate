@@ -49,34 +49,26 @@ public static partial class Config<TState, TEvent>
 
 		public IExit<TArgument> OnRun<TArgument>(Action<TArgument> runAction)
 		{
-			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
-			if(IsAsyncMethod(runAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
-
-			return OnRun<TArgument>((_, argument) => runAction(argument));
+			StateConfig.Factory = new StateFactory<TArgument>();
+			return new Run<TArgument>(this).OnRun(runAction);
 		}
 
 		public IExit<TArgument> OnRun<TArgument>(Action<IStateController<TEvent>, TArgument> runAction)
 		{
-			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
-			if(IsAsyncMethod(runAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
-
-			return OnRun(WrapRunAction(runAction));
+			StateConfig.Factory = new StateFactory<TArgument>();
+			return new Run<TArgument>(this).OnRun(runAction);
 		}
 
 		public IExit<TArgument> OnRun<TArgument>(Func<TArgument, Task> runAction)
 		{
-			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
-
-			return OnRun<TArgument>((_, argument) => runAction(argument));
+			StateConfig.Factory = new StateFactory<TArgument>();
+			return new Run<TArgument>(this).OnRun(runAction);
 		}
 
 		public IExit<TArgument> OnRun<TArgument>(Func<IStateController<TEvent>, TArgument, Task> runAction)
 		{
-			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
-
-			StateConfig.SetRunAction(runAction);
 			StateConfig.Factory = new StateFactory<TArgument>();
-			return new Exit<TArgument>(StateConfig);
+			return new Run<TArgument>(this).OnRun(runAction);
 		}
 
 		public IExit<ITuple<TArgument, TRelay>> OnRun<TArgument, TRelay>(Action<TArgument, TRelay> runAction)

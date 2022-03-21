@@ -7,4 +7,5 @@ namespace Binstate;
 /// </summary>
 /// <param name="state"> The state to which transition should be performed. </param>
 /// <returns> Returns false if no transition should be performed. </returns>
-public delegate bool GetState<TState>([NotNullWhen(true)] out TState? state);
+//[NotNullWhen(true)] 
+public delegate bool GetState<TState>(out TState? state);

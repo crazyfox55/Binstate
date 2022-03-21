@@ -12,10 +12,10 @@ public static partial class Config<TState, TEvent>
 		/// <summary>
 		///   Specifies the action to be called on exiting the currently configured state.
 		/// </summary>
-		ITransitionsEx OnExit(Action exitAction);
+		ITransitions OnExit(Action exitAction);
 
 		/// <summary>
-		///
+		///   Specifies the action to be called on exiting the currently configured state.
 		/// </summary>
 		ITransitions<T> OnExit<T>(Action<T> exitAction);
 	}

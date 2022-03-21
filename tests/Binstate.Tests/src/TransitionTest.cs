@@ -14,7 +14,7 @@ public class TransitionTest : StateMachineTestBase
 	public async Task should_call_action_on_transition_between_exit_and_enter(RaiseWay raiseWay)
 	{
 		var onExitInitial = A.Fake<Action>();
-		var onTransit     = A.Fake<Action>();
+		var onTransit = A.Fake<Action>();
 		var onEnterState1 = A.Fake<Action>();
 
 		// --arrange
@@ -44,7 +44,7 @@ public class TransitionTest : StateMachineTestBase
 		var expected = new MemoryStream();
 
 		var onExitInitial = A.Fake<Action>();
-		var onTransit     = A.Fake<Action<IDisposable>>();
+		var onTransit = A.Fake<Action<IDisposable>>();
 		var onEnterState1 = A.Fake<Action>();
 
 		// --arrange
@@ -125,12 +125,12 @@ public class TransitionTest : StateMachineTestBase
 		 .DefineState(Initial)
 		 .AddTransition(
 				GoToStateX,
-				() =>
+				getState: (out string? state) =>
 				{
-					var state = first ? StateX : StateY;
+					state = first ? StateX : StateY;
 					first = false;
 
-					return state;
+					return true;
 				}
 			);
 
@@ -157,8 +157,8 @@ public class TransitionTest : StateMachineTestBase
 	public async Task should_transit_using_dynamic_transition_using_value_type_default(RaiseWay raiseWay)
 	{
 		const int initialStateId = 1;
-		const int stateId1       = 0; // default value
-		const int stateId2       = 38;
+		const int stateId1 = 0; // default value
+		const int stateId2 = 38;
 
 		var first = true;
 
@@ -202,7 +202,7 @@ public class TransitionTest : StateMachineTestBase
 	public async Task raise_should_return_false_if_dynamic_transition_returns_false_value_type(RaiseWay raiseWay)
 	{
 		const int initialStateId = 1;
-		const int stateId        = 2;
+		const int stateId = 2;
 
 		static bool DynamicTransition(out int state)
 		{
@@ -261,7 +261,11 @@ public class TransitionTest : StateMachineTestBase
 		var builder = new Builder<string, int>(OnException);
 
 		builder.DefineState(Initial)
-					 .AddTransition(GoToStateX, () => null);
+			.AddTransition(GoToStateX, (out string? state) =>
+			{
+				state = null;
+				return false;
+			});
 
 		builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
 
@@ -278,13 +282,17 @@ public class TransitionTest : StateMachineTestBase
 	public async Task raise_should_return_false_if_dynamic_transition_returns_default(RaiseWay raiseWay)
 	{
 		const int initialStateId = 1;
-		const int stateId        = 2;
+		const int stateId = 2;
 
 		// --arrange
 		var builder = new Builder<int, int>(OnException);
 
 		builder.DefineState(initialStateId)
-					 .AddTransition(GoToStateX, () => default);
+			.AddTransition(GoToStateX, getState: (out int state) =>
+			{
+				state = default;
+				return false;
+			});
 
 		builder.DefineState(stateId).OnEnter(() => Assert.Fail("No transition should be performed"));
 
@@ -305,7 +313,11 @@ public class TransitionTest : StateMachineTestBase
 
 		builder.DefineState(Initial)
 			.OnRun(OnEnterInitialState)
-			.AddTransition(StateX, () => null);
+			.AddTransition(StateX, (out string? state) =>
+			{
+				state = null;
+				return false;
+			});
 
 		builder.DefineState(StateX).OnEnter(() => Assert.Fail("No transition should be performed"));
 
@@ -325,14 +337,18 @@ public class TransitionTest : StateMachineTestBase
 	public void controller_should_return_false_if_dynamic_transition_returns_default()
 	{
 		const int initialStateId = 1;
-		const int stateId        = 2;
+		const int stateId = 2;
 
 		// --arrange
 		var builder = new Builder<int, int>(OnException);
 
 		builder.DefineState(initialStateId)
 			.OnRun(OnEnterInitialState)
-			.AddTransition(GoToStateX, () => default);
+			.AddTransition(GoToStateX, (out int state) =>
+			{
+				state = default;
+				return false;
+			});
 
 		builder.DefineState(stateId).OnEnter(() => Assert.Fail("No transition should be performed"));
 
@@ -425,7 +441,7 @@ public class TransitionTest : StateMachineTestBase
 
 		builder
 		 .DefineState(Initial)
-		 .AddTransition(GoToStateX, () => throw new TestException());
+		 .AddTransition(GoToStateX, (out string? state) => throw new TestException());
 
 		var target = await builder.Build(Initial);
 
@@ -435,5 +451,34 @@ public class TransitionTest : StateMachineTestBase
 		// --assert
 		result.Should().BeFalse();
 		A.CallTo(() => onException(An<Exception>.That.Matches(exc => exc is TestException))).MustHaveHappenedOnceExactly();
+	}
+
+	[Test]
+	[Timeout(1000)]
+	public async Task should_perform_transition()
+	{
+		// --arrange
+		var builder = new Builder<string, int>(OnException);
+
+		builder.DefineState(Initial)
+			.AddTransition(GoToStateX, StateX);
+
+		builder.DefineState(StateX)
+			.OnRun(async sc =>
+			{
+				await Task.Delay(300);
+				await sc.RaiseAsync(GoToStateY);
+			})
+			.AddTransition(GoToStateY, StateY);
+
+		builder.DefineState(StateY)
+			.OnEnter(() => Assert.Pass());
+
+		var target = await builder.Build(Initial);
+
+		await target.RaiseAsync(GoToStateX);
+		await target.RaiseAsync(GoToStateY);
+
+		
 	}
 }

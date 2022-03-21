@@ -6,7 +6,7 @@ namespace Binstate;
 
 public static partial class Config<TState, TEvent>
 {
-	internal class Transitions : ITransitionsEx
+	internal class Transitions : ITransitions
 	{
 		public readonly StateConfig StateConfig;
 
@@ -35,37 +35,18 @@ public static partial class Config<TState, TEvent>
 			return this;
 		}
 
-		/// <inheritdoc />
-		public ITransitions AddTransition(TEvent @event, Func<TState?> getState)
-		{
-			if(@event is null) throw new ArgumentNullException(nameof(@event));
-			if(getState is null) throw new ArgumentNullException(nameof(getState));
-
-#pragma warning disable CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
-			var getStateWrapper = new GetState<TState>(
-				(out TState? state) =>
-				{
-					state = getState();
-					return ! EqualityComparer<TState?>.Default.Equals(state, default);
-				}
-			);
-#pragma warning restore CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
-
-			AddTransitionToList(@event, getStateWrapper, false, null);
-			return this;
-		}
-
-		public void AllowReentrancy(TEvent @event) => AddTransition(@event, StateConfig.StateId);
+		public void AllowReentrancy(TEvent @event) =>
+			AddTransition(@event, StateConfig.StateId);
 
 		public ITransitions<T> AddTransition<T>(TEvent @event, TState stateId, Action<T> action)
 		{
 			StateConfig.Factory = new StateFactory<T>();
 
-			var transitions = new Transitions<T>(StateConfig);
+			var transitions = new Transitions<T>(this);
 			return transitions.AddTransition(@event, stateId, action); // delegate call
 		}
 
-		protected static GetState<TState> StaticGetState(TState stateId)
+		public static GetState<TState> StaticGetState(TState stateId)
 #pragma warning disable CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
 			=> (out TState? state) =>
 			{
@@ -74,19 +55,35 @@ public static partial class Config<TState, TEvent>
 			};
 #pragma warning restore CS8622 // Nullability of reference types in type of parameter doesn't match the target delegate (possibly because of nullability attributes).
 
-		protected void AddTransitionToList(TEvent @event, GetState<TState> getState, bool isStatic, object? action)
-			=> StateConfig.TransitionList.Add(@event, new Transition<TState, TEvent>(@event, getState, isStatic, action));
+		protected void AddTransitionToList(TEvent @event, GetState<TState> getState, bool isStatic, object? action) =>
+			StateConfig.TransitionList.Add(@event, new Transition<TState, TEvent>(@event, getState, isStatic, action));
 
-		protected static Func<Task> WrapEnterExitAction(Action enterAction)
-			=> () => Task.Run(enterAction);
+		public static Func<Task> WrapEnterExitAction(Action action)
+			=> () =>
+			{
+				action();
+				return Task.CompletedTask;
+			};
 
-		protected static Func<TArgument, Task> WrapEnterExitAction<TArgument>(Action<TArgument> enterAction)
-			=> (argument) => Task.Run(() => enterAction(argument));
+		public static Func<TArgument, Task> WrapEnterExitAction<TArgument>(Action<TArgument> action)
+			=> (argument) =>
+			{
+				action(argument);
+				return Task.CompletedTask;
+			};
 
-		protected static Func<IStateController<TEvent>, Task> WrapRunAction(Action<IStateController<TEvent>> runAction) =>
-			controller => Task.Run(() => runAction(controller));
+		public static Func<IStateController<TEvent>, Task> WrapRunAction(Action<IStateController<TEvent>> runAction) =>
+			controller =>
+			{
+				runAction(controller);
+				return Task.CompletedTask;
+			};
 
-		protected static Func<IStateController<TEvent>, TArgument, Task> WrapRunAction<TArgument>(Action<IStateController<TEvent>, TArgument> runAction) =>
-			(controller, argument) => Task.Run(() => runAction(controller, argument));
+		public static Func<IStateController<TEvent>, TArgument, Task> WrapRunAction<TArgument>(Action<IStateController<TEvent>, TArgument> runAction) =>
+			(controller, argument) =>
+			{
+				runAction(controller, argument);
+				return Task.CompletedTask;
+			};
 	}
 }

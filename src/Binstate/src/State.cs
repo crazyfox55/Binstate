@@ -64,10 +64,6 @@ internal sealed class State<TState, TEvent, TArgument> : IState<TState, TEvent>,
 	public int                     DepthInTree { get; }
 	public IState<TState, TEvent>? ParentState { get; }
 
-	/// <summary>
-	///   This property is set from protected by lock part of the code so it's no need synchronization
-	///   see <see cref="StateMachine{TState,TEvent}.ActivateStateNotGuarded" /> implementation for details.
-	/// </summary>
 	public bool IsActive
 	{
 		get => _isActive;
@@ -93,7 +89,7 @@ internal sealed class State<TState, TEvent, TArgument> : IState<TState, TEvent>,
 
 			if (_runAction != null)
 			{
-				_running = _runAction(stateController, Argument);
+				_running = Task.Run(() => _runAction(stateController, Argument));
 			}
 		}
 		catch(Exception exception)
@@ -122,12 +118,13 @@ internal sealed class State<TState, TEvent, TArgument> : IState<TState, TEvent>,
 			// if enter action is blocking or no action: _enterFunctionFinished is set means it finishes
 			_enterActionFinished.WaitOne();
 
-			IsActive = false; // signal that current state is no more active and blocking enter action can finish
+			IsActive = false; // signal that current state is no more active and the run action can finish
 
-			await _running;
+			await _running.ConfigureAwait(false);
+
 			if (_exitAction != null)
 			{
-				await _exitAction(Argument);
+				await _exitAction(Argument).ConfigureAwait(false);
 			}
 		}
 		catch(Exception exception)

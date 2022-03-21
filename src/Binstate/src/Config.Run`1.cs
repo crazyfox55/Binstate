@@ -14,36 +14,34 @@ public static partial class Config<TState, TEvent>
 		private static bool IsAsyncMethod(MemberInfo method) => method.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) is not null;
 		private const string AsyncVoidMethodNotSupported = "'async void' methods are not supported, use Task return type for async method";
 
-		internal Run(StateConfig stateConfig) : base(stateConfig) { }
+		private readonly Run _run;
+
+		internal Run(Run run) : base(run)
+		{
+			_run = run;
+		}
 
 		public IExit<T> OnRun(Action runAction)
 		{
-			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
-			if(IsAsyncMethod(runAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
-
-			return OnRun((IStateController<TEvent> _) => runAction());
+			_run.OnRun(runAction);
+			return this;
 		}
 
 		public IExit<T> OnRun(Action<IStateController<TEvent>> runAction)
 		{
-			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
-			if(IsAsyncMethod(runAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
-
-			return OnRun(WrapRunAction(runAction));
+			_run.OnRun(runAction);
+			return this;
 		}
 
 		public IExit<T> OnRun(Func<Task> runAction)
 		{
-			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
-
-			return OnRun((IStateController<TEvent> _) => runAction());
+			_run.OnRun(runAction);
+			return this;
 		}
 
 		public IExit<T> OnRun(Func<IStateController<TEvent>, Task> runAction)
 		{
-			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
-
-			StateConfig.SetRunAction(runAction);
+			_run.OnRun(runAction);
 			return this;
 		}
 
@@ -60,7 +58,7 @@ public static partial class Config<TState, TEvent>
 			if(runAction is null) throw new ArgumentNullException(nameof(runAction));
 			if(IsAsyncMethod(runAction.Method)) throw new ArgumentException(AsyncVoidMethodNotSupported);
 
-			return OnRun(WrapRunAction(runAction));
+			return OnRun(Transitions.WrapRunAction(runAction));
 		}
 
 		public IExit<T> OnRun(Func<T, Task> runAction)

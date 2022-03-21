@@ -31,22 +31,6 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 		_activeState = GetStateById(initialStateId);
 	}
 
-	///// <inheritdoc />
-	//public bool Raise(TEvent @event)
-	//{
-	//	if(@event is null) throw new ArgumentNullException(nameof(@event));
-
-	//	return PerformTransitionSync(@event, Unit.Default, true);
-	//}
-
-	///// <inheritdoc />
-	//public bool Raise<T>(TEvent @event, T argument, bool argumentIsFallback = false)
-	//{
-	//	if(@event is null) throw new ArgumentNullException(nameof(@event));
-
-	//	return PerformTransitionSync(@event, argument, argumentIsFallback);
-	//}
-
 	/// <inheritdoc />
 	public Task<bool> RaiseAsync(TEvent @event)
 	{
@@ -88,8 +72,6 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 
 				stack.Push(parentState);
 
-				//enterActions.Add(ActivateStateNotGuarded(parentState, argumentsBag));
-
 				parentState = parentState.ParentState;
 			}
 
@@ -98,8 +80,6 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 				var state = stack.Pop();
 				await ActivateState(state, argumentsBag).ConfigureAwait(false);
 			}
-
-			//CallEnterActions(enterActions);
 		}
 		catch(Exception exception)
 		{
@@ -108,20 +88,13 @@ internal partial class StateMachine<TState, TEvent> : IStateMachine<TEvent>
 		}
 	}
 
-	//private bool PerformTransitionSync<TArgument>(TEvent @event, TArgument argument, bool argumentIsFallback)
-	//{
-	//	var data = PrepareTransition(@event, argument, argumentIsFallback);
-
-	//	return data != null && PerformTransitionAsync(data.Value);
-	//}
-
 	private Task<bool> PerformTransitionAsync<TArgument>(TEvent @event, TArgument argument, bool argumentHasPriority)
 	{
 		var data = PrepareTransition(@event, argument, argumentHasPriority);
 
 		return data is null
-						 ? Task.FromResult(false)
-						 : PerformTransitionAsync(data.Value);
+			? Task.FromResult(false)
+			: PerformTransitionAsync(data.Value);
 	}
 
 	private IState<TState, TEvent> GetStateById(TState state)

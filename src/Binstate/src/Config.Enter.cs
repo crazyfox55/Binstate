@@ -44,7 +44,7 @@ public static partial class Config<TState, TEvent>
 
 			StateConfig.SetEnterAction(enterAction);
 			StateConfig.Factory = new StateFactory<TArgument>();
-			return new Run<TArgument>(StateConfig);
+			return new Run<TArgument>(this);
 		}
 
 		public IRun<ITuple<TArgument, TRelay>> OnEnter<TArgument, TRelay>(Action<TArgument, TRelay> enterAction)
