@@ -60,5 +60,5 @@ public interface IStateMachine<in TEvent>
 	///   All users exception from the 'enter', 'exit' and 'dynamic transition' actions are caught and reported
 	///   using the delegate passed into <see cref="Builder{TState,TEvent}(Action{Exception})" />
 	/// </exception>
-	Task<bool> RaiseAsync<T>(TEvent @event, T argument, bool argumentIsFallback = false);
+	Task<bool> RaiseAsync<T>(TEvent @event, T argument, bool argumentIsFallback = false, bool noWait = false);
 }

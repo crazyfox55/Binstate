@@ -21,7 +21,9 @@ internal partial class StateMachine<TState, TEvent>
 		public Task<bool> RaiseAsync(TEvent @event) =>
 			RaiseAsync<Unit>(@event, default);
 
-		public Task<bool> RaiseAsync<T>(TEvent @event, T argument, bool argumentIsFallback = false) =>
-			_owner.RaiseAsync(@event, argument, argumentIsFallback);
+		public Task<bool> RaiseAsync<T>(TEvent @event, T argument, bool argumentIsFallback = false)
+		{
+			return _owner.RaiseAsync(@event, argument, argumentIsFallback, true);
+		}
 	}
 }

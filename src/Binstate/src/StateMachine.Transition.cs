@@ -15,11 +15,21 @@ internal partial class StateMachine<TState, TEvent>
 	///   dynamic transition returns 'null'
 	/// </returns>
 	/// <exception cref="TransitionException"> Throws if passed argument doesn't match the 'enter' action of the target state. </exception>
-	private TransitionData? PrepareTransition<TArgument>(TEvent @event, TArgument argument, bool argumentIsFallback)
+	private TransitionData? PrepareTransition<TArgument>(TEvent @event, TArgument argument, bool argumentIsFallback, bool noWait = false)
 	{
 		try
 		{
-			_lock.WaitOne();
+			if(noWait)
+			{
+				if(!_lock.WaitOne(0))
+				{
+					return null;
+				}
+			}
+			else
+			{
+				_lock.WaitOne();
+			}
 
 			if(! _activeState.FindTransitionTransitive(@event, out var transition) // looks for a transition through all parent states
 			|| ! transition!.GetTargetStateId(out var stateId))

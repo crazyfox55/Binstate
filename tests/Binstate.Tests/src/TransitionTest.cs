@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using FakeItEasy;
 using FluentAssertions;
@@ -455,9 +456,11 @@ public class TransitionTest : StateMachineTestBase
 
 	[Test]
 	[Timeout(1000)]
-	public async Task should_perform_transition()
+	public async Task should_perform_internal_or_external_transition([Values(true, false)]bool internalTransition)
 	{
 		// --arrange
+		var entered = new ManualResetEvent(false);
+
 		var builder = new Builder<string, int>(OnException);
 
 		builder.DefineState(Initial)
@@ -466,19 +469,29 @@ public class TransitionTest : StateMachineTestBase
 		builder.DefineState(StateX)
 			.OnRun(async sc =>
 			{
-				await Task.Delay(300);
-				await sc.RaiseAsync(GoToStateY);
+				await Task.Delay(100);
+				var internalHappened = await sc.RaiseAsync(GoToStateY);
+				internalHappened.Should().Be(internalTransition);
 			})
 			.AddTransition(GoToStateY, StateY);
 
 		builder.DefineState(StateY)
-			.OnEnter(() => Assert.Pass());
+			.OnEnter(() => {
+					entered.Set();
+				});
 
 		var target = await builder.Build(Initial);
 
 		await target.RaiseAsync(GoToStateX);
-		await target.RaiseAsync(GoToStateY);
 
+		if(internalTransition)
+		{
+			await Task.Delay(200);
+		}
+
+		var externalHappened = await target.RaiseAsync(GoToStateY);
+		externalHappened.Should().NotBe(internalTransition);
 		
+		Assert.That(entered.WaitOne(), Is.True);
 	}
 }
