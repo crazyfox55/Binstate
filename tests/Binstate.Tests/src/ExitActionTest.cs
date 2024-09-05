@@ -2,13 +2,13 @@
 using System.Threading.Tasks;
 using Binstate.Tests.Util;
 using FakeItEasy;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 public class ExitActionTest : StateMachineTestBase
 {
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_exit_action(RaiseWay raiseWay)
 	{
 		var onExit = A.Fake<Action>();
@@ -28,7 +28,7 @@ public class ExitActionTest : StateMachineTestBase
 		A.CallTo(() => onExit()).MustHaveHappenedOnceExactly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_exit_action_w_argument(RaiseWay raiseWay)
 	{
 		const string expected = "argument";
@@ -49,7 +49,7 @@ public class ExitActionTest : StateMachineTestBase
 		A.CallTo(() => onExit(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_exit_action_w_argument_from_prev_active_state(RaiseWay raiseWay)
 	{
 		const string expected = "argument";
@@ -73,7 +73,7 @@ public class ExitActionTest : StateMachineTestBase
 		A.CallTo(() => onExitX(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_parent_exit_action_w_argument(RaiseWay raiseWay)
 	{
 		const string expected      = "argument";

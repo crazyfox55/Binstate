@@ -1,14 +1,15 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Binstate.Tests.Util;
 using FakeItEasy;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 public class ArgumentTypeTest : StateMachineTestBase
 {
-	[Test]
+	[Fact]
 	[Description("If argument type is set by OnEnter action, no parameters, Exit and Transition should work")]
 	public async Task set_type_in_enter()
 	{
@@ -39,7 +40,7 @@ public class ArgumentTypeTest : StateMachineTestBase
 		A.CallTo(() => onTransition()).MustHaveHappenedOnceExactly();
 	}
 
-	[Test]
+	[Fact]
 	[Description("If argument type is set by OnExit action, no parameters, Enter and Transition should work")]
 	public async Task set_type_in_exit()
 	{
@@ -70,7 +71,7 @@ public class ArgumentTypeTest : StateMachineTestBase
 		A.CallTo(() => onTransition()).MustHaveHappenedOnceExactly();
 	}
 
-	[Test]
+	[Fact]
 	[Description("If argument type is set by OnTransition action, no parameters, Enter and Exit should work")]
 	public async Task set_type_in_transition()
 	{

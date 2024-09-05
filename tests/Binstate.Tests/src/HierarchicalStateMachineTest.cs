@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
@@ -16,7 +16,7 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 	private const string Exit          = nameof(Exit);
 	private const string Enter		   = nameof(Enter);
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_enter_all_parent_states(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
@@ -56,7 +56,7 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 		actual.Should().Equal(Root, Branch1Level1, Branch1Level2, Branch1Level3);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_exit_all_parent_states(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
@@ -106,7 +106,7 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 			Free1 + Enter);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_not_exit_parent_state(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
@@ -140,7 +140,7 @@ public class HierarchicalStateMachineTest : StateMachineTestBase
 		actual.Should().Equal(Branch1Level3);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_not_exit_common_root(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();

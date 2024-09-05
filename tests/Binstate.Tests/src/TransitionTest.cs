@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using FakeItEasy;
 using FluentAssertions;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 public class TransitionTest : StateMachineTestBase
 {
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_action_on_transition_between_exit_and_enter(RaiseWay raiseWay)
 	{
 		var onExitInitial = A.Fake<Action>();
@@ -39,7 +39,7 @@ public class TransitionTest : StateMachineTestBase
 		 .Then(A.CallTo(() => onEnterState1()).MustHaveHappenedOnceExactly());
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_action_w_argument_on_transition_between_exit_and_enter(RaiseWay raiseWay)
 	{
 		var expected = new MemoryStream();
@@ -71,7 +71,7 @@ public class TransitionTest : StateMachineTestBase
 		 .Then(A.CallTo(() => onEnterState1()).MustHaveHappenedOnceExactly());
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task raise_should_return_false_if_no_transition_found(RaiseWay raiseWay)
 	{
 		// --arrange
@@ -88,7 +88,7 @@ public class TransitionTest : StateMachineTestBase
 		actual.Should().BeFalse();
 	}
 
-	[Test]
+	[Fact]
 	public async Task controller_should_return_false_if_no_transition_found()
 	{
 		// --arrange
@@ -112,7 +112,7 @@ public class TransitionTest : StateMachineTestBase
 		}
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_transit_using_dynamic_transition(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
@@ -154,7 +154,7 @@ public class TransitionTest : StateMachineTestBase
 		actual.Should().BeEquivalentTo(StateX, StateY);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_transit_using_dynamic_transition_using_value_type_default(RaiseWay raiseWay)
 	{
 		const int initialStateId = 1;
@@ -199,7 +199,7 @@ public class TransitionTest : StateMachineTestBase
 		actual.Should().Equal(stateId1, stateId2);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task raise_should_return_false_if_dynamic_transition_returns_false_value_type(RaiseWay raiseWay)
 	{
 		const int initialStateId = 1;
@@ -228,7 +228,7 @@ public class TransitionTest : StateMachineTestBase
 		actual.Should().BeFalse();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task raise_should_return_false_if_dynamic_transition_returns_false_reference_type(RaiseWay raiseWay)
 	{
 		// --arrange
@@ -255,7 +255,7 @@ public class TransitionTest : StateMachineTestBase
 		actual.Should().BeFalse();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task raise_should_return_false_if_dynamic_transition_returns_null(RaiseWay raiseWay)
 	{
 		// --arrange
@@ -279,7 +279,7 @@ public class TransitionTest : StateMachineTestBase
 		actual.Should().BeFalse();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task raise_should_return_false_if_dynamic_transition_returns_default(RaiseWay raiseWay)
 	{
 		const int initialStateId = 1;
@@ -306,7 +306,7 @@ public class TransitionTest : StateMachineTestBase
 		actual.Should().BeFalse();
 	}
 
-	[Test]
+	[Fact]
 	public async Task controller_should_return_false_if_dynamic_transition_returns_null()
 	{
 		// --arrange
@@ -334,7 +334,7 @@ public class TransitionTest : StateMachineTestBase
 		}
 	}
 
-	[Test]
+	[Fact]
 	public void controller_should_return_false_if_dynamic_transition_returns_default()
 	{
 		const int initialStateId = 1;
@@ -365,7 +365,7 @@ public class TransitionTest : StateMachineTestBase
 		}
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_use_parent_transition(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
@@ -393,7 +393,7 @@ public class TransitionTest : StateMachineTestBase
 		actual.Should().Equal(Parent, StateX);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_catch_user_action_exception_and_report(RaiseWay raiseWay)
 	{
 		var onException = A.Fake<Action<Exception>>();
@@ -416,7 +416,7 @@ public class TransitionTest : StateMachineTestBase
 		A.CallTo(() => onException(An<Exception>.That.Matches(exc => exc is TestException))).MustHaveHappenedOnceExactly();
 	}
 
-	[Test]
+	[Fact]
 	public void should_throw_exception_if_transitions_to_different_states_by_one_event()
 	{
 		var builder = new Builder<string, int>(OnException);
@@ -432,7 +432,7 @@ public class TransitionTest : StateMachineTestBase
 		target.Should().ThrowExactly<ArgumentException>().WithMessage("An item with the same key has already been added*");
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_not_perform_transition_if_dynamic_transition_throws_exception(RaiseWay raiseWay)
 	{
 		var onException = A.Fake<Action<Exception>>();
@@ -454,9 +454,10 @@ public class TransitionTest : StateMachineTestBase
 		A.CallTo(() => onException(An<Exception>.That.Matches(exc => exc is TestException))).MustHaveHappenedOnceExactly();
 	}
 
-	[Test]
-	[Timeout(1000)]
-	public async Task should_perform_internal_or_external_transition([Values(true, false)]bool internalTransition)
+	[Theory(Timeout=1000)]
+	[InlineData(true)]
+	[InlineData(false)]
+	public async Task should_perform_internal_or_external_transition(bool internalTransition)
 	{
 		// --arrange
 		var entered = new ManualResetEvent(false);
@@ -492,6 +493,6 @@ public class TransitionTest : StateMachineTestBase
 		var externalHappened = await target.RaiseAsync(GoToStateY);
 		externalHappened.Should().NotBe(internalTransition);
 		
-		Assert.That(entered.WaitOne(), Is.True);
+		Assert.True(entered.WaitOne());
 	}
 }

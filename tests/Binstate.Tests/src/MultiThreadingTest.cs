@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 public class MultiThreadingTest : StateMachineTestBase
 {
-	[Test]
+	[Fact]
 	public async Task multiple_threads_should_execute_without_overlapping()
 	{
 		//arrange
@@ -93,14 +93,14 @@ public class MultiThreadingTest : StateMachineTestBase
 		}
 		actual.TryPeek(out var top);
 
-		Assert.AreEqual(StateX, top);
+		Assert.Equal(StateX, top);
 
-		Assert.AreEqual(101, stateXCount);
-		Assert.AreEqual(100, stateYCount);
-		Assert.AreEqual(100, stateXToStateYCount);
+		Assert.Equal(101, stateXCount);
+		Assert.Equal(100, stateYCount);
+		Assert.Equal(100, stateXToStateYCount);
 	}
 
-	[Test]
+	[Fact]
 	public async Task eternal_async_run_should_be_stopped_by_changing_state()
 	{
 		const string enter = nameof(enter);
@@ -141,8 +141,7 @@ public class MultiThreadingTest : StateMachineTestBase
 		actual.Should().Equal(enter, exit, StateY);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
-	[Timeout(5000)]
+	[Theory(Timeout=5000), MemberData(nameof(RaiseWays))]
 	public async Task async_run_should_not_block(RaiseWay raiseWay)
 	{
 		// --arrange

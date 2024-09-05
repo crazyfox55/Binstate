@@ -1,15 +1,16 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Text;
 using System.Threading.Tasks;
 using Binstate.Tests.Util;
 using FakeItEasy;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 public class EnterActionTest : StateMachineTestBase
 {
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_enter_action(RaiseWay raiseWay)
 	{
 		var onEnter = A.Fake<Action>();
@@ -29,7 +30,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnter()).MustHaveHappenedOnceExactly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_enter_action_wo_argument_if_argument_passed(RaiseWay raiseWay)
 	{
 		var onEnter = A.Fake<Action>();
@@ -49,7 +50,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnter()).MustHaveHappenedOnceExactly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_enter_action_w_argument(RaiseWay raiseWay)
 	{
 		const string expected = "argument";
@@ -70,7 +71,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnter(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_enter_action_w_argument_from_prev_active_state(RaiseWay raiseWay)
 	{
 		const string expected = "argument";
@@ -94,7 +95,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnter2(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_parent_enter_action_w_argument(RaiseWay raiseWay)
 	{
 		const string expected      = "argument";
@@ -116,7 +117,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnterParent(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_parent_enter_action_w_argument_from_active_state(RaiseWay raiseWay)
 	{
 		const string expected      = "argument";
@@ -141,7 +142,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnterParent(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_enter_action_w_argument_but_not_from_prev_active_state(RaiseWay raiseWay)
 	{
 		const string expected = "argument";
@@ -165,7 +166,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnter2(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_enter_action_w_argument_from_prev_active_state_but_not_passed(RaiseWay raiseWay)
 	{
 		const string expected = "argument";
@@ -189,7 +190,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnter2(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_pass_to_enter_two_arguments_one_from_active_state_and_other_passed_to_raise(RaiseWay raiseWay)
 	{
 		const string expectedString        = "argument";
@@ -211,7 +212,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnter(expectedStringBuilder, expectedString)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	[Description("When Enter action requires two arguments get one passed to Raise and another from active state")]
 	public async Task should_pass_to_enter_tuple_mixed_from_passed_and_argument_from_active_state(RaiseWay raiseWay)
 	{
@@ -234,7 +235,7 @@ public class EnterActionTest : StateMachineTestBase
 		A.CallTo(() => onEnter(new Tuple<StringBuilder, string>(expectedStringBuilder, expectedString))).MustHaveHappenedOnceAndOnly();
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_pass_to_enter_two_arguments_from_active_state(RaiseWay raiseWay)
 	{
 		const string expectedString        = "argument";

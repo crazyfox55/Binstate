@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 using Binstate.Tests.Util;
 using FakeItEasy;
 using FluentAssertions;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 public class InitialStateTest : StateMachineTestBase
 {
-	[Test]
+	[Fact]
 	public async Task should_call_enter_of_initial_state()
 	{
 		var onEnter = A.Fake<Action>();
@@ -27,7 +27,7 @@ public class InitialStateTest : StateMachineTestBase
 		A.CallTo(() => onEnter()).MustHaveHappenedOnceExactly();
 	}
 
-	[Test]
+	[Fact]
 	public async Task should_pass_argument_to_initial_state_enter_action()
 	{
 		const string expected = "expected";
@@ -46,10 +46,10 @@ public class InitialStateTest : StateMachineTestBase
 		A.CallTo(() => onEnter(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[Test]
+	[Theory, MemberData(nameof(EnterExit))]
 	public async Task should_pass_argument_to_initial_and_its_parents_states(
-		[ValueSource(nameof(EnterExit))] Action<Config<string, int>.IEnter, Action<string>> setupRoot,
-		[ValueSource(nameof(EnterExit))] Action<Config<string, int>.IEnter, Action<string>> setupParent)
+		Action<Config<string, int>.IEnter, Action<string>> setupRoot,
+		Action<Config<string, int>.IEnter, Action<string>> setupParent)
 	{
 		const string expected     = "expected";
 		var          onEnter      = A.Fake<Action<string>>();
@@ -74,7 +74,7 @@ public class InitialStateTest : StateMachineTestBase
 		A.CallTo(() => onEnter(expected)).MustHaveHappenedOnceAndOnly();
 	}
 
-	[Test]
+	[Fact]
 	public Task should_throw_exception_if_initial_state_is_not_defined()
 	{
 		const string wrongState = "Wrong";
@@ -93,7 +93,7 @@ public class InitialStateTest : StateMachineTestBase
 			.WithMessage($"No state '{wrongState}' is defined");
 	}
 
-	[Test]
+	[Fact]
 	public Task should_throw_exception_if_initial_state_has_no_transition()
 	{
 		// --arrange
@@ -110,7 +110,7 @@ public class InitialStateTest : StateMachineTestBase
 			.WithMessage("No transitions defined from the initial state*");
 	}
 
-	[Test]
+	[Fact]
 	public async Task should_use_parent_transition_if_transition_from_initial_state_is_not_set()
 	{
 		var onEnterX = A.Fake<Action>();
@@ -130,7 +130,7 @@ public class InitialStateTest : StateMachineTestBase
 		A.CallTo(() => onEnterX()).MustHaveHappenedOnceExactly();
 	}
 
-	[Test]
+	[Fact]
 	public Task should_throw_exception_if_initial_state_requires_argument_but_no_argument_is_specified()
 	{
 		// --arrange
@@ -147,7 +147,7 @@ public class InitialStateTest : StateMachineTestBase
 			.WithMessage("The state*");
 	}
 
-	[Test]
+	[Fact]
 	public Task should_throw_exception_if_parent_of_initial_state_requires_argument_but_no_argument_is_specified()
 	{
 		// --arrange

@@ -4,13 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using FakeItEasy;
 using FluentAssertions;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 public class EnterExitActionsTest : StateMachineTestBase
 {
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_finish_enter_before_call_exit_and_call_next_enter(RaiseWay raiseWay)
 	{
 		var actual = new List<string>();
@@ -51,7 +51,7 @@ public class EnterExitActionsTest : StateMachineTestBase
 		actual.Should().BeEquivalentTo(enter1, exit1, enter2);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_exit_and_enter_on_reentering(RaiseWay raiseWay)
 	{
 		const string enter = nameof(enter);
@@ -80,7 +80,7 @@ public class EnterExitActionsTest : StateMachineTestBase
 		actual.Should().BeEquivalentTo(enter, exit, enter);
 	}
 
-	[TestCaseSource(nameof(RaiseWays))]
+	[Theory, MemberData(nameof(RaiseWays))]
 	public async Task should_call_enter_exit_and_transition_in_order(RaiseWay raiseWay)
 	{
 		var onEnter      = A.Fake<Action>();

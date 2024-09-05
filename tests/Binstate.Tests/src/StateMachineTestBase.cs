@@ -2,11 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
+using Xunit.Extensions.AssemblyFixture;
 
 namespace Binstate.Tests;
 
-public abstract class StateMachineTestBase
+public abstract class StateMachineTestBase : IAssemblyFixture<TestFixture>
 {
 	protected const string Initial    = nameof(Initial);
 	protected const string StateX     = nameof(StateX);
@@ -26,15 +27,15 @@ public abstract class StateMachineTestBase
 		Assert.Fail(exception.GetType().Name);
 	}
 
-	public static IEnumerable<RaiseWay> RaiseWays() => new[] { RaiseWay.Raise };//, RaiseWay.RaiseAsync, };
+	public static IEnumerable<object[]> RaiseWays() => [ [ RaiseWay.Raise ] ];//, RaiseWay.RaiseAsync, };
 
 	public static void OnEnter<T>(Config<string, int>.IEnter state, Action<T> action) => state.OnEnter(action);
 	public static void OnExit<T>(Config<string, int>.IEnter  state, Action<T> action) => state.OnExit(action);
 
-	public static IEnumerable EnterExit()
+	public static IEnumerable<object[]> EnterExit()
 	{
-		yield return new Action<Config<string, int>.IEnter, Action<string>>(OnEnter);
-		yield return new Action<Config<string, int>.IEnter, Action<string>>(OnExit);
+		yield return [ new Action<Config<string, int>.IEnter, Action<string>>(OnEnter), new Action<Config<string, int>.IEnter, Action<string>>(OnEnter)];
+		yield return [ new Action<Config<string, int>.IEnter, Action<string>>(OnExit), new Action<Config<string, int>.IEnter, Action<string>>(OnExit)];
 	}
 }
 

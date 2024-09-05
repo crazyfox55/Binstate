@@ -2,14 +2,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using FluentAssertions;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 [SuppressMessage("ReSharper", "UnusedParameter.Local")]
 public class BuilderTest : StateMachineTestBase
 {
-	[Test]
+	[Fact]
 	public Task should_throw_exception_if_transition_refers_not_defined_state()
 	{
 		const string wrongState = "null_state";
@@ -29,7 +29,7 @@ public class BuilderTest : StateMachineTestBase
 			.WithMessage($"The transition '{GoToStateX}' from the state '{Initial}' references not defined state '{wrongState}'");
 	}
 
-	[Test]
+	[Fact]
 	public Task should_throw_exception_if_parent_and_child_states_have_not_compatible_enter_arguments_and_enable_loose_relaying_is_false()
 	{
 		// --arrange
@@ -53,7 +53,7 @@ public class BuilderTest : StateMachineTestBase
 			.WithMessage( $"Parent state '{Parent}' requires argument of type '{typeof(int)}' whereas it's child state '{Child}'*");
 	}
 
-	[Test]
+	[Fact]
 	public void should_not_throw_exception_if_parent_and_child_states_have_not_compatible_enter_arguments_and_enable_loose_relaying_is_true()
 	{
 		// --arrange

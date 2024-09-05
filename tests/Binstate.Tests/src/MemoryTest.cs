@@ -3,14 +3,14 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using JetBrains.dotMemoryUnit;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 public class BoxingTest : StateMachineTestBase
 {
-	[TestCaseSource(nameof(RaiseWays))]
-	[Category(MemoryTest)]
+	[Theory, MemberData(nameof(RaiseWays))]
+	[Trait("Category", MemoryTest)]
 	[DotMemoryUnit(FailIfRunWithoutSupport = false)]
 	[AssertTraffic(AllocatedObjectsCount = 0, Types = new[] { typeof(ValueType1), typeof(ValueType2), })]
 	public async Task should_not_boxing_passed_value_type_arguments(RaiseWay raiseWay)
@@ -69,8 +69,8 @@ public class BoxingTest : StateMachineTestBase
 		actualTuple.ItemX.Value.Should().Be(expected2.Value);
 	}
 
-	[Test]
-	[Category(MemoryTest)]
+	[Fact]
+	[Trait("Category",MemoryTest)]
 	[DotMemoryUnit(FailIfRunWithoutSupport = false)]
 	[AssertTraffic(AllocatedObjectsCount = 0, Types = new[] { typeof(ValueType1), })]
 	public void should_not_box_value_type_instance_passed_by_reflection()

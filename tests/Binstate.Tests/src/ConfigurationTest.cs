@@ -2,14 +2,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using FluentAssertions;
-using NUnit.Framework;
+using Xunit;
 
 namespace Binstate.Tests;
 
 [SuppressMessage("ReSharper", "AssignNullToNotNullAttribute")]
 public class ConfigurationTest : StateMachineTestBase
 {
-	[Test]
+	[Fact]
 	public void should_throw_exception_if_pass_null_to_as_substate_of()
 	{
 		// --arrange
@@ -22,7 +22,7 @@ public class ConfigurationTest : StateMachineTestBase
 		target.Should().ThrowExactly<ArgumentNullException>().WithMessage("*parentStateId*");
 	}
 
-	[Test]
+	[Fact]
 	public void should_throw_exception_if_pass_null_to_define_state()
 	{
 		// --arrange
@@ -35,7 +35,7 @@ public class ConfigurationTest : StateMachineTestBase
 		target.Should().ThrowExactly<ArgumentNullException>().WithMessage("*stateId*");
 	}
 
-	[Test]
+	[Fact]
 	public void should_throw_exception_if_pass_null_to_get_or_define_state()
 	{
 		// --arrange
@@ -48,7 +48,7 @@ public class ConfigurationTest : StateMachineTestBase
 		target.Should().ThrowExactly<ArgumentNullException>().WithMessage("*stateId*");
 	}
 
-	[Test]
+	[Fact]
 	public Task should_throw_exception_if_pass_null_initial_state_id()
 	{
 		// --arrange
@@ -64,7 +64,7 @@ public class ConfigurationTest : StateMachineTestBase
 			.WithMessage("*initialStateId*");
 	}
 
-	[Test]
+	[Fact]
 	public void on_enter_should_check_arguments_for_null()
 	{
 		// --arrange
@@ -93,7 +93,7 @@ public class ConfigurationTest : StateMachineTestBase
 		target06.Should().ThrowExactly<ArgumentNullException>();
 	}
 
-	[Test]
+	[Fact]
 	public void on_exit_should_check_arguments_for_null()
 	{
 		// --arrange
@@ -112,7 +112,7 @@ public class ConfigurationTest : StateMachineTestBase
 		target03.Should().ThrowExactly<ArgumentNullException>();
 	}
 
-	[Test]
+	[Fact]
 	public void on_enter_should_not_accept_async_void_method()
 	{
 		// --arrange
@@ -136,7 +136,7 @@ public class ConfigurationTest : StateMachineTestBase
 		target3.Should().ThrowExactly<ArgumentException>().WithMessage("'async void' methods are not supported, use Task return type for async method");
 	}
 
-	[Test]
+	[Fact]
 	public void add_transition_should_check_arguments_for_null()
 	{
 		static bool GetState(out string? _)
@@ -166,7 +166,7 @@ public class ConfigurationTest : StateMachineTestBase
 		target6.Should().ThrowExactly<ArgumentNullException>();
 	}
 
-	[Test]
+	[Fact]
 	public void define_state_should_throw_exception_on_define_already_defined_state()
 	{
 		// --arrange
@@ -181,7 +181,7 @@ public class ConfigurationTest : StateMachineTestBase
 		target.Should().ThrowExactly<ArgumentException>();
 	}
 
-	[Test]
+	[Fact]
 	public void get_or_define_state_should_return_existent_state_if_already_defined()
 	{
 		// --arrange
@@ -196,7 +196,7 @@ public class ConfigurationTest : StateMachineTestBase
 		actual.Should().BeSameAs(expected);
 	}
 
-	[Test]
+	[Fact]
 	public void get_or_define_state_should_define_state_if_still_no()
 	{
 		// --arrange
